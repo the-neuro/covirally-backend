@@ -1,0 +1,57 @@
+[tool.isort]
+profile= "black"
+multi_line_output= 3
+include_trailing_comma= true
+force_grid_wrap= 0
+use_parentheses= true
+line_length= 90
+
+[tool.black]
+line-length = 90
+target-version = ['py310']
+quiet = 0
+exclude = '''
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+    | venv
+  )/
+  | foo.py           # also separately exclude a file named foo.py in
+                     # the root of the project
+)
+'''
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --cov=aggregator --disable-pytest-warnings"
+testpaths = [
+    "tests",
+]
+
+[tool.coverage.paths]
+source = ["aggregator"]
+
+[tool.coverage.run]
+branch = true
+source = ["aggregator"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "@abstractmethod",
+    "@abc.abstractmethod",
+]
+
+[tool.towncrier]
+package_dir = "aggregator"
+filename = "NEWS.rst"
+version = "0.2.0"

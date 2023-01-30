@@ -1,0 +1,48 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+    - id: check-ast
+    - id: check-merge-conflict
+    - id: check-yaml
+    - id: end-of-file-fixer
+    - id: trailing-whitespace
+  - repo: https://github.com/psf/black
+    rev: 22.3.0
+    hooks:
+    - id: black
+      exclude: ^.*\b(migrations)\b.*$
+
+  - repo: local
+    hooks:
+      - id: flake8
+        name: flake8
+        entry: "./.ci/lint.sh check-flake8"
+        # use require_serial so that script
+        # is only called once per commit
+        require_serial: true
+        language: script
+        # Print the number of files as a sanity-check
+        verbose: true
+        pass_filenames: false
+        always_run: true
+      - id: mypy
+        name: mypy
+        entry: "./.ci/lint.sh check-mypy"
+        # use require_serial so that script
+        # is only called once per commit
+        require_serial: true
+        language: script
+        # Print the number of files as a sanity-check
+        verbose: true
+        pass_filenames: false
+        always_run: true
+      - id: pylint
+        name: pylint
+        entry: "./.ci/lint.sh check-pylint"
+        require_serial: true
+        language: script
+        # Print the number of files as a sanity-check
+        verbose: true
+        pass_filenames: false
+        always_run: true

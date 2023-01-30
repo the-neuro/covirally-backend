@@ -1,0 +1,21 @@
+# linters
+black==22.3.0
+mypy==0.931
+pylint==2.15.0
+isort==5.10.0
+
+flake8==4.0.1
+flake8-bugbear==22.7.1
+flake8-comprehensions==3.10.0
+flake8-colors==0.1.9
+flake8-simplify==0.19.3
+flake8-builtins==1.5.3
+
+# tests
+pytest
+pytest-cov
+pytest-asyncio
+pytest-dotenv==0.5.2
+aioboto3==9.5.0
+pytest-mock==3.7.0
+SQLAlchemy-Utils==0.38.2
