@@ -8,6 +8,8 @@ from sqlalchemy import engine_from_config, pool
 from app.config import settings
 from app.db.base import Base
 
+from app.db.models.users.schemas import User
+
 
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[3]))
 
