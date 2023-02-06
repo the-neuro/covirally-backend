@@ -1,18 +1,14 @@
-import uuid
-
-from sqlalchemy import Column, String, Boolean, DateTime, func
+from sqlalchemy import Column, String, Boolean, DateTime, func, text
 
 from app.db.base import Base
-
-
-def _uuid4() -> str:
-    return str(uuid.uuid4())
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(String, primary_key=True, default=_uuid4)  # noqa
+    id = Column(  # noqa
+        String, primary_key=True, server_default=text("gen_random_uuid()::varchar")
+    )
 
     first_name = Column(String(length=64), nullable=False)
     last_name = Column(String(length=64), nullable=False)

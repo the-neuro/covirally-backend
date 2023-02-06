@@ -15,6 +15,8 @@ class Settings(BaseSettings):
 
     sentry_dsn: str
 
+    secret_jwt_token: str
+
     database_url: str | PostgresDsn
     max_connection_count: int = 10
     min_connection_count: int = 10

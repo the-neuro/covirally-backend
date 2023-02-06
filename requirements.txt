@@ -9,7 +9,7 @@ python-dotenv==0.19.2
 psycopg2-binary==2.9.3
 databases==0.7.0
 SQLAlchemy==1.4.42
-asyncpg==0.25.0
+asyncpg==0.27.0
 aiosqlite==0.17.0
 alembic==1.7.5
 
@@ -18,7 +18,7 @@ construct-typing==0.5.2
 pydantic==1.9.1
 
 # auth and encryption
-bcrypt==4.0.1
+argon2-cffi==21.3.0
 python-jose==3.3.0
 python-multipart==0.0.5
 
