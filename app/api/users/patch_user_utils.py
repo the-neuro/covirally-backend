@@ -35,7 +35,9 @@ def _check_same_value_for_update(update_params: dict[str, Any], user: GetUser) -
     exclude them from update values
     """
     fields_to_delete = {
-        name for name, value in update_params.items() if getattr(user, name) == value
+        name
+        for name, value in update_params.items()
+        if getattr(user, name, None) == value
     }
     for f_name in fields_to_delete:
         del update_params[f_name]

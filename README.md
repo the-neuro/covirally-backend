@@ -34,7 +34,19 @@ make dev
 4. Check http://0.0.0.0:80/docs, everything should be OK!
 
 
-## Tests
+## Testing
+Some steps should be made to run tests.
+
+1. Tests must be run only with `APP_ENV=test`, there will be an error otherwise.
+2. Test database must be running. One can do this via command:
+    ```shell
+    make test_services
+    ```
+   **NB**: It's not necessary to change your `DATABASE_URL` env.
+   There is automatic replacemet of database name while running tests.
+
+After that you can run your tests:
+
 ```{shell}
 make run_tests
 ```

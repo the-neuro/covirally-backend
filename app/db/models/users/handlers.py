@@ -1,6 +1,7 @@
 import logging
 from typing import Any
 
+from asyncpg import NotNullViolationError
 from databases.backends.postgres import Record
 from pydantic import ValidationError
 from sqlalchemy import select, insert, literal_column, update
@@ -43,7 +44,9 @@ async def get_user_by_username(username: str) -> GetUser | None:
         return parsed_user
 
 
-async def create_user(create_user_params: CreateUser) -> GetUser:
+async def create_user(
+    create_user_params: CreateUser,
+) -> tuple[GetUser | None, str | None]:
     create_params = create_user_params.dict()
 
     query = (
@@ -51,13 +54,25 @@ async def create_user(create_user_params: CreateUser) -> GetUser:
         .values(**create_params)
         .returning(literal_column("id"), literal_column("created_at"))
     )
-    row: Record = await database.fetch_one(query)
-    user_id, created_at = row._mapping.values()
+    transaction = await database.transaction()
+    try:
+        row: Record = await database.fetch_one(query)
 
-    user: GetUser = GetUser.construct(
-        **dict(id=user_id, created_at=created_at, **create_params)
-    )
-    return user
+        user_id, created_at = row._mapping.values()
+        user: GetUser = GetUser.construct(
+            **dict(id=user_id, created_at=created_at, **create_params)
+        )
+    except NotNullViolationError as exc:
+        logger.error(f"Can't create user: {exc}")
+        await transaction.rollback()
+        return None, str(exc)
+    except ValidationError as exc:
+        logger.error(f"Validation error after creating user: {exc}")
+        await transaction.rollback()
+        return None, str(exc)
+    else:
+        await transaction.commit()
+        return user, None
 
 
 async def user_exists_in_db(username: str) -> bool:
@@ -66,9 +81,20 @@ async def user_exists_in_db(username: str) -> bool:
     return bool(res)
 
 
-async def update_user(user_id: str, values: dict[str, Any]) -> None:
-    if values == {}:
+async def update_user(user_id: str, values: dict[str, Any]) -> str | None:
+    """
+    Returns optional error
+    """
+    if not values:
         return None
 
     query = update(User).where(User.id == user_id).values(values)
-    await database.execute(query)
+    transaction = await database.transaction()
+    try:
+        await database.execute(query)
+    except NotNullViolationError as exc:
+        await transaction.rollback()
+        return str(exc)
+    else:
+        await transaction.commit()
+        return None

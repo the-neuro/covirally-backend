@@ -6,15 +6,12 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.config import settings
-from app.db.base import Base
+from app.db.base import Base, database
 
 from app.db.models.users.schemas import User
 
 
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[3]))
-
-
-DATABASE_URL = settings.database_url
 
 config = context.config
 
@@ -22,7 +19,7 @@ fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
 
-config.set_main_option("sqlalchemy.url", str(DATABASE_URL))
+config.set_main_option("sqlalchemy.url", str(database.url))
 
 
 def run_migrations_online() -> None:

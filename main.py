@@ -1,6 +1,11 @@
+from http import HTTPStatus
+
 import sentry_sdk
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError, HTTPException
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 from app.api.auth.routers import auth_router
 from app.api.users.routers import users_router
@@ -36,3 +41,10 @@ def get_application() -> FastAPI:
 
 
 app = get_application()
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: HTTPException
+) -> JSONResponse:
+    return JSONResponse(status_code=HTTPStatus.BAD_REQUEST, content={"detail": str(exc)})
