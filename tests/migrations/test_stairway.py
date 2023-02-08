@@ -1,3 +1,13 @@
+"""
+The Stairway test is maintenance-free and allows you to quickly and cheaply find
+a huge number of common typical mistakes in migrations:
+- not implemented downgrade methods,
+- non-removed data types in downgrade methods (e.g. enum),
+- typos and other errors.
+The idea of the test is to run migrations one at a time,
+sequentially executing the upgrade, downgrade,
+upgrade.
+"""
 from types import SimpleNamespace
 
 import pytest
@@ -5,7 +15,7 @@ from alembic.command import downgrade, upgrade
 from alembic.config import Config
 from alembic.script import Script, ScriptDirectory
 
-from tests.conftest import make_alembic_config
+from tests.db_alembic_utils import _make_alembic_config
 
 
 def get_revisions():
@@ -13,12 +23,12 @@ def get_revisions():
     options = SimpleNamespace(
         config="alembic.ini", pg_url=None, name="alembic", raiseerr=False, x=None
     )
-    config = make_alembic_config(options)
+    config = _make_alembic_config(options)
 
     # Get folder with alembic migrations
     revisions_dir = ScriptDirectory.from_config(config)
 
-    # Sort all migrations
+    # Sort all migrations from first to last
     revisions = list(revisions_dir.walk_revisions("base", "heads"))
     revisions.reverse()
     return revisions

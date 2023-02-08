@@ -3,7 +3,10 @@ export
 
 
 services:
-	docker-compose -f docker-compose.services.yml up
+	docker-compose -f docker-compose.services.yml up --build
+
+test_services:
+	docker-compose -f docker-compose.test.yml up --build
 
 makemigrations:
 	PYTHONPATH=. alembic revision -m "${m}" --autogenerate

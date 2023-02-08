@@ -34,9 +34,9 @@ class InvalidAccessTokenPayload(HTTPException):
 
 
 class UserNotFound(HTTPException):
-    def __init__(self, user_param: str) -> None:
+    def __init__(self, user_param: str, status_code: int = HTTPStatus.NOT_FOUND) -> None:
         super().__init__(
-            status_code=HTTPStatus.NOT_FOUND,
+            status_code=status_code,
             detail=f"User with {user_param} is not found.",
         )
 
@@ -50,4 +50,16 @@ class UserAlreadyExist(HTTPException):
 class InvalidOldPassword(HTTPException):
     def __init__(self) -> None:
         msg = "Not correct old password, it's not equal to already existing password."
+        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
+
+
+class BadRequestCreatingUser(HTTPException):
+    def __init__(self, exc: str) -> None:
+        msg = f"Can't create user: {exc}"
+        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
+
+
+class BadRequestUpdatingUser(HTTPException):
+    def __init__(self, exc: str) -> None:
+        msg = f"Can't update user: {exc}"
         super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)

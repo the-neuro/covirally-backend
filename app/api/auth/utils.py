@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from http import HTTPStatus
 
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
@@ -11,8 +12,12 @@ from app.api.errors import (
     InvalidAccessTokenPayload,
     AccessTokenExpired,
 )
-from app.api.auth.password_utils import passwords_are_equal, password_needs_rehash, \
-    get_password_hash
+from app.api.auth.password_utils import (
+    passwords_are_equal,
+    password_needs_rehash,
+    get_password_hash,
+)
+
 from app.config import settings
 from app.db.models.users.handlers import get_user_by_username, get_user, update_user
 from app.schemas import GetUser
@@ -58,7 +63,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> GetUser:
         raise InvalidAccessToken from exc
 
     if (user := await get_user(user_id=user_id)) is None:
-        raise UserNotFound(user_param=user_id)
+        raise UserNotFound(user_param=user_id, status_code=HTTPStatus.UNAUTHORIZED)
 
     if user.password is not None and password_needs_rehash(user.password):
         new_password = get_password_hash(user.password)

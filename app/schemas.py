@@ -3,15 +3,15 @@ from typing import Any
 
 from pydantic import BaseModel, validator, Field, root_validator
 
-from app.api.auth.password_utils import get_password_hash, passwords_are_equal
+from app.api.auth.password_utils import get_password_hash
 
 EMAIL_REGEX = r"([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+"
 URL_REGEX = r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"  # noqa
 
 
 class _BaseUser(BaseModel):
-    first_name: str | None = Field(default=None, max_length=64)
-    last_name: str | None = Field(default=None, max_length=64)
+    first_name: str | None = Field(default=None, min_length=1, max_length=64)
+    last_name: str | None = Field(default=None, min_length=1, max_length=64)
 
     username: str | None = Field(default=None, min_length=2, max_length=64)
     password: str | None = Field(default=None, min_length=8, max_length=256)
@@ -33,8 +33,8 @@ class CreateUser(_BaseUser):
     username and password are mondatory
     """
 
-    first_name: str = Field(max_length=64)
-    last_name: str = Field(max_length=64)
+    first_name: str = Field(min_length=1, max_length=64)
+    last_name: str = Field(min_length=1, max_length=64)
 
     username: str = Field(min_length=2, max_length=64)
     password: str = Field(min_length=8, max_length=256)
@@ -51,8 +51,8 @@ class CreateUser(_BaseUser):
 class GetUser(_BaseUser):
     id: str  # noqa
 
-    first_name: str = Field(max_length=64)
-    last_name: str = Field(max_length=64)
+    first_name: str = Field(min_length=1, max_length=64)
+    last_name: str = Field(min_length=1, max_length=64)
 
     email: str = Field(max_length=128, regex=EMAIL_REGEX, example="random@gmail.com")
     receive_email_alerts: bool
@@ -61,7 +61,7 @@ class GetUser(_BaseUser):
 
 
 class UpdateUser(_BaseUser):
-    old_password: str | None = Field(default=None, min_length=8, max_length=256)
+    old_password: str | None = Field(default=None, min_length=1, max_length=256)
 
     @validator("password")
     def hash_new_password(  # pylint: disable=no-self-argument
@@ -84,7 +84,7 @@ class UpdateUser(_BaseUser):
             assert new_password is None, "Old password is required to change password"
         return values
 
-    @root_validator
+    @root_validator(pre=True)
     def check_different_passwords(  # pylint: disable=no-self-argument
         cls, values: dict[str, Any]
     ) -> dict[str, Any]:
@@ -94,8 +94,19 @@ class UpdateUser(_BaseUser):
         if (old_password := values.get("old_password")) is not None and (
             new_password := values.get("password")
         ) is not None:
-            assert not passwords_are_equal(
-                old_password, new_password
+            assert (
+                old_password != new_password
             ), "New password must be different from existing one."
 
+        return values
+
+    @root_validator(pre=True)
+    def check_cant_patch_system_fields(  # pylint: disable=no-self-argument
+        cls, values: dict[str, Any]
+    ) -> dict[str, Any]:
+        system_fields = ("id", "created_at")
+
+        system_fields_in_request = [field for field in system_fields if field in values]
+        err = f"Following fields can't be updated: {system_fields_in_request}"
+        assert not system_fields_in_request, err
         return values
