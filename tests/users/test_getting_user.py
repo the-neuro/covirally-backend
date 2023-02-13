@@ -13,20 +13,24 @@ pytestmark = pytest.mark.asyncio
 
 
 async def test_success_get(async_client):
-    username, password = "stevesteveasd", "appleapple"
+    password, email = "appleapple", "svsj@apple.com"
     user_data = {
         "first_name": "Steve",
         "last_name": "Jobs",
-        "username": username,
+        "username": "ddmvaa2d",
         "password": password,
-        "email": "sj@apple.com",
+        "email": email,
     }
     await async_client.post("/users", json=user_data)
 
-    auth_data = {"username": username, "password": password}
+    auth_data = {"email": email, "password": password}
     auth_response = await async_client.post("/auth/token", data=auth_data)
 
-    access_token = auth_response.json()["access_token"]
+    auth_response_json = auth_response.json()
+
+    assert "access_token" in auth_response_json, auth_response_json
+
+    access_token = auth_response_json["access_token"]
     auth_header = f"Bearer {access_token}"
 
     response = await async_client.get("/users/me", headers={"Authorization": auth_header})
@@ -51,9 +55,9 @@ async def test_get_while_unauthorized(async_client):
     assert response.status_code == HTTPStatus.UNAUTHORIZED, response.text
 
 
-async def test_get_with_wrong_used_id_payload(async_client):
-    # create access token with wrong user_id
-    access_token = create_access_token(user_id=str(uuid.uuid4()))
+async def test_get_with_wrong_email_payload(async_client):
+    # create access token with wrong email
+    access_token = create_access_token(email="hello@gmail.com")
     auth_header = f"Bearer {access_token}"
 
     response = await async_client.get("/users/me", headers={"Authorization": auth_header})
@@ -89,7 +93,7 @@ async def test_get_with_outdated_token(async_client):
     response_json = json.loads(response.json())
 
     # create outdated token
-    access_token = create_access_token(user_id=response_json["id"], expires_minutes=-123)
+    access_token = create_access_token(email=response_json["email"], expires_minutes=-123)
 
     auth_header = f"Bearer {access_token}"
     response = await async_client.get("/users/me", headers={"Authorization": auth_header})

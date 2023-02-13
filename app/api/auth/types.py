@@ -8,5 +8,5 @@ class AccessTokenType(str, Enum):
 
 
 class DataToEncodeInJWTToken(TypedDict):
-    user_id: str
+    email: str
     exp: datetime

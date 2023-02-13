@@ -10,7 +10,7 @@ from app.api.auth.password_utils import passwords_are_equal
 from app.api.auth.utils import create_access_token, ALGORITHM
 from app.config import settings
 from app.db.base import database
-from app.db.models.users.handlers import get_user_by_username
+from app.db.models.users.handlers import get_user_by_email
 from app.db.models.users.schemas import User
 from app.schemas import GetUser
 
@@ -24,18 +24,18 @@ async def access_token_and_user(async_client) -> tuple[str, GetUser]:
     """
     Create user, authorize it and get access token with username
     """
-    username = "appleapple"
+    email = "sjvas@apple.com"
     user_data = {
         "first_name": "Steve",
         "last_name": "Jobs",
-        "username": username,
+        "username": "appleapple",
         "password": PASSWORD,
-        "email": "sj@apple.com",
+        "email": email,
     }
     user_response = await async_client.post("/users", json=user_data)
     user: GetUser = GetUser.construct(**json.loads(user_response.json()))
 
-    auth_data = {"username": username, "password": PASSWORD}
+    auth_data = {"email": email, "password": PASSWORD}
     auth_response = await async_client.post("/auth/token", data=auth_data)
 
     access_token = auth_response.json()["access_token"]
@@ -47,7 +47,7 @@ async def access_token_and_user(async_client) -> tuple[str, GetUser]:
     (
         ({"first_name": "SomeName"}),
         ({"last_name": "LastName"}),
-        ({"email": "gsdlk@gmail.com"}),
+        ({"username": "new_one"}),
         ({"avatar_url": "https://asdasd.com"}),
         ({"receive_email_alerts": False}),
         ({"telephone_number": "+81231235914"}),
@@ -65,7 +65,7 @@ async def test_success_patch_simple_fields(async_client, patch_data, access_toke
     patch_response_json = patch_response.json()
     assert patch_response_json == patch_data
 
-    user_id_db = await get_user_by_username(user.username)
+    user_id_db = await get_user_by_email(user.email)
     assert user_id_db is not None
 
     # asswert value in db equal to value from request
@@ -85,7 +85,7 @@ async def test_success_change_password(async_client, access_token_and_user):
     patch_response_json = patch_response.json()
 
     # password changed and new one in response
-    user_in_db = await get_user_by_username(user.username)
+    user_in_db = await get_user_by_email(user.email)
     assert passwords_are_equal(patch_data["password"], patch_response_json.get("password")), patch_response_json
     assert passwords_are_equal(patch_data["password"], user_in_db.password)
 
@@ -97,7 +97,7 @@ async def test_success_change_password(async_client, access_token_and_user):
     patch_response_json = patch_response.json()
 
     # password changed and new one in response
-    user_in_db = await get_user_by_username(user.username)
+    user_in_db = await get_user_by_email(user.email)
     assert passwords_are_equal(patch_data["password"], patch_response_json.get("password")), patch_response_json
     assert passwords_are_equal(patch_data["password"], user_in_db.password)
 
@@ -119,7 +119,7 @@ async def test_bad_password_requests(async_client, patch_data, access_token_and_
                                               headers={"Authorization": auth_header})
     assert patch_response.status_code == HTTPStatus.BAD_REQUEST, patch_response.text
 
-    user_in_db = await get_user_by_username(user.username)
+    user_in_db = await get_user_by_email(user.email)
     assert user_in_db is not None
 
     # password didn't changed
@@ -153,6 +153,32 @@ async def test_cant_update_to_existing_username(async_client, access_token_and_u
     assert users_count == 1, f"Only one user must be with {new_username=}"
 
 
+async def test_cant_update_to_existing_email(async_client, access_token_and_user):
+    new_email = "gjasoivn@gmail.com"
+    another_user_data = {
+        "first_name": "Steve",
+        "last_name": "Jobs",
+        "username": "dbvansdlq",
+        "password": PASSWORD,
+        "email": new_email,
+    }
+    await async_client.post("/users", json=another_user_data)
+
+    patch_data = {"email": new_email}
+    access_token, _ = access_token_and_user
+    auth_header = f"Bearer {access_token}"
+
+    # can't patch it, already have user with this email
+    patch_response = await async_client.patch("/users", json=patch_data,
+                                              headers={"Authorization": auth_header})
+    assert patch_response.status_code == HTTPStatus.BAD_REQUEST, patch_response.text
+
+    # only one user in db with such email
+    users_count_query = select(func.count()).select_from(User).where(
+        User.email == new_email)
+    users_count: int = await database.execute(users_count_query)
+    assert users_count == 1, f"Only one user must be with {new_email=}"
+
 
 @pytest.mark.parametrize(
     "patch_data",
@@ -169,7 +195,7 @@ async def test_cant_patch_system_fields(async_client, patch_data, access_token_a
                                               headers={"Authorization": auth_header})
     assert patch_response.status_code == HTTPStatus.BAD_REQUEST, patch_response.text
 
-    user_id_db = await get_user_by_username(user.username)
+    user_id_db = await get_user_by_email(user.email)
     assert user_id_db is not None
 
     # asswert value in db doesn't equal to value from request
@@ -209,7 +235,7 @@ async def test_wrong_data_format(async_client, patch_data, access_token_and_user
                                               headers={"Authorization": auth_header})
     assert patch_response.status_code == HTTPStatus.BAD_REQUEST, patch_response.text
 
-    user_id_db = await get_user_by_username(user.username)
+    user_id_db = await get_user_by_email(user.email)
     assert user_id_db is not None
 
     # asswert value in db doesn't equal to value from request
@@ -222,9 +248,9 @@ async def test_patch_while_unauthorized(async_client):
     assert response.status_code == HTTPStatus.UNAUTHORIZED, response.text
 
 
-async def test_patch_with_wrong_user_id_payload(async_client):
-    # create access token with wrong user_id
-    access_token = create_access_token(user_id=str(uuid.uuid4()))
+async def test_patch_with_wrong_email_payload(async_client):
+    # create access token with wrong email
+    access_token = create_access_token(email="ld@gmail.com")
     auth_header = f"Bearer {access_token}"
 
     response = await async_client.patch("/users", headers={"Authorization": auth_header})
@@ -254,13 +280,13 @@ async def test_patch_with_outdated_token(async_client):
         "last_name": "Jobs",
         "username": "stevesteveasd",
         "password": "appleapple",
-        "email": "sj@apple.com",
+        "email": "sjvvswwpj@apple.com",
     }
     response = await async_client.post("/users", json=user_data)
     response_json = json.loads(response.json())
 
     # create outdated token
-    access_token = create_access_token(user_id=response_json["id"], expires_minutes=-123)
+    access_token = create_access_token(email=response_json["email"], expires_minutes=-123)
 
     auth_header = f"Bearer {access_token}"
     response = await async_client.patch("/users", headers={"Authorization": auth_header})

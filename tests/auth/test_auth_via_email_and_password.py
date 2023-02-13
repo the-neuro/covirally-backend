@@ -13,6 +13,10 @@ pytestmark = pytest.mark.asyncio
         ({"username": "aasd"}),
         ({"password": "asdasdas"}),
         ({"some_field": "value"}),
+        ({"email": "asd"}),
+        ({"email": "ga@gmail.com"}),
+        ({"email": "gagmail.com", "password": "adasd"}),
+        ({"username": "dasd", "password": "asdasdas"}),
     ),
 )
 async def test_invalid_request_data(async_client, data):
@@ -21,8 +25,8 @@ async def test_invalid_request_data(async_client, data):
 
 
 async def test_cant_auth_user_not_in_db(async_client):
-    some_random_username = "asdaksslgkafdglkafhbg"
-    data = {"username": some_random_username, "password": "asdasd"}
+    some_random_email = "asd@gmail.com"
+    data = {"email": some_random_email, "password": "asdasd"}
 
     response = await async_client.post("/auth/token", data=data)
     assert response.status_code == HTTPStatus.UNAUTHORIZED, response.text
@@ -30,35 +34,35 @@ async def test_cant_auth_user_not_in_db(async_client):
 
 async def test_cant_auth_user_with_wrong_password(async_client):
     # create user in db
-    username = "appleapple"
+    username, email = "appleapple", "sj@apple.com"
     user_data = {
         "first_name": "Steve",
         "last_name": "Jobs",
         "username": username,
         "password": "wylsawylsa",
-        "email": "sj@apple.com",
+        "email": email,
     }
     await async_client.post("/users", json=user_data)
 
     # trying to auth with wrong password
-    auth_data = {"username": username, "password": "randomrandom"}
+    auth_data = {"email": email, "password": "randomrandom"}
     response = await async_client.post("/auth/token", data=auth_data)
     assert response.status_code == HTTPStatus.UNAUTHORIZED, response.text
 
 
 async def test_success_auth(async_client):
     # create user in db
-    username, password = "stevesteve", "appleapple"
+    username, password, email = "stevesteve", "appleapple", "sjvvxcvxcv@apple.com"
     user_data = {
         "first_name": "Steve",
         "last_name": "Jobs",
         "username": username,
         "password": password,
-        "email": "sj@apple.com",
+        "email": email,
     }
     await async_client.post("/users", json=user_data)
 
-    auth_data = {"username": username, "password": password}
+    auth_data = {"email": email, "password": password}
     response = await async_client.post("/auth/token", data=auth_data)
     assert response.status_code == HTTPStatus.OK, response.text
 
