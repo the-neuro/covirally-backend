@@ -17,7 +17,7 @@ class User(Base):
     password = Column(String(length=256), nullable=True)
     avatar_url = Column(String, nullable=True)
 
-    email = Column(String(length=128))
+    email = Column(String(length=128), unique=True, index=True)
     telephone_number = Column(String(length=12), nullable=True)
 
     receive_email_alerts = Column(Boolean, default=True)
