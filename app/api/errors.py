@@ -42,8 +42,8 @@ class UserNotFound(HTTPException):
 
 
 class UserAlreadyExist(HTTPException):
-    def __init__(self, username: str) -> None:
-        msg = f"User with {username=} already exists."
+    def __init__(self, param: str) -> None:
+        msg = f"User with {param=} already exists."
         super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
 
 

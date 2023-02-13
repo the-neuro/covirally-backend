@@ -1,7 +1,7 @@
 import logging
 from typing import Any
 
-from asyncpg import NotNullViolationError
+from asyncpg import NotNullViolationError, UniqueViolationError
 from databases.backends.postgres import Record
 from pydantic import ValidationError
 from sqlalchemy import select, insert, literal_column, update
@@ -24,6 +24,21 @@ async def get_user(user_id: str) -> GetUser | None:
         parsed_user: GetUser = GetUser.parse_obj(_res)
     except ValidationError as exc:
         logger.error(f"Can't parse user by {user_id=}, {_res}: {exc}")
+        return None
+    else:
+        return parsed_user
+
+
+async def get_user_by_email(email: str) -> GetUser | None:
+    query = select(User).where(User.email == email).limit(1)
+
+    if not (_res := await database.fetch_one(query)):
+        return None
+
+    try:
+        parsed_user: GetUser = GetUser.parse_obj(_res)
+    except ValidationError as exc:
+        logger.error(f"Can't parse user by {email=}, {_res}: {exc}")
         return None
     else:
         return parsed_user
@@ -62,7 +77,7 @@ async def create_user(
         user: GetUser = GetUser.construct(
             **dict(id=user_id, created_at=created_at, **create_params)
         )
-    except NotNullViolationError as exc:
+    except (NotNullViolationError, UniqueViolationError) as exc:
         logger.error(f"Can't create user: {exc}")
         await transaction.rollback()
         return None, str(exc)
@@ -92,7 +107,7 @@ async def update_user(user_id: str, values: dict[str, Any]) -> str | None:
     transaction = await database.transaction()
     try:
         await database.execute(query)
-    except NotNullViolationError as exc:
+    except (NotNullViolationError, UniqueViolationError) as exc:
         await transaction.rollback()
         return str(exc)
     else:

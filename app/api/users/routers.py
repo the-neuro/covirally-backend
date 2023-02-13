@@ -6,14 +6,12 @@ from starlette.responses import JSONResponse
 
 from app.api.auth.utils import get_current_user
 from app.api.errors import (
-    UserAlreadyExist,
     BadRequestCreatingUser,
     BadRequestUpdatingUser,
 )
 from app.api.users.patch_user_utils import check_patch_params
 from app.db.models.users.handlers import (
     create_user,
-    get_user_by_username,
     update_user,
 )
 from app.schemas import GetUser, CreateUser, UpdateUser
@@ -25,11 +23,8 @@ users_router = APIRouter(tags=["Users"], prefix="/users")
 async def create_new_user(user_params: CreateUser) -> JSONResponse:
     """
     Creating new user
-    Checking if user is already exists with such username
+    Checking if user is already exists with such username and email
     """
-    username = user_params.username
-    if await get_user_by_username(username) is not None:
-        raise UserAlreadyExist(username)
 
     res, err = await create_user(create_user_params=user_params)
     if err:
