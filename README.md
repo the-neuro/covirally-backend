@@ -19,7 +19,7 @@ cp .env_example .env
 ```
 
 ## Running locally
-1. Run all necessary services
+1. Run all necessary services (DB and so on)
 ```{shell}
 make services
 ```
@@ -27,7 +27,7 @@ make services
 ```{shell}
 make migrate
 ```
-3. Run backend on FastAPI
+3. Run backend on FastAPI (in separate terminal window)
 ```{shell}
 make dev
 ```
