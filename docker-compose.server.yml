@@ -1,0 +1,11 @@
+services:
+  backend:
+    build: .
+    container_name: covirally_backend_server
+    restart: always
+    volumes:
+      - .:/code
+    ports:
+      - "80:80"
+    env_file:
+      - ./.env
