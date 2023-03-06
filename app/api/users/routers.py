@@ -5,6 +5,9 @@ from fastapi import APIRouter, Depends
 from starlette.responses import JSONResponse
 
 from app.api.auth.utils import get_current_user
+from app.api.auth.verify_email import (
+    create_verify_token_and_send_to_email,
+)
 from app.api.errors import (
     BadRequestCreatingUser,
     BadRequestUpdatingUser,
@@ -19,19 +22,22 @@ from app.schemas import GetUser, CreateUser, UpdateUser
 users_router = APIRouter(tags=["Users"], prefix="/users")
 
 
-@users_router.post("", response_model=GetUser)
-async def create_new_user(user_params: CreateUser) -> JSONResponse:
+@users_router.post("", response_model=GetUser, status_code=HTTPStatus.CREATED)
+async def create_new_user(user_params: CreateUser) -> GetUser:
     """
     Creating new user
     Checking if user is already exists with such username and email
     """
 
-    res, err = await create_user(create_user_params=user_params)
+    user, err = await create_user(create_user_params=user_params)
     if err:
         raise BadRequestCreatingUser(exc=err)
-    assert res is not None
+    assert user is not None
 
-    return JSONResponse(content=res.json(), status_code=HTTPStatus.CREATED)
+    if not user.email_is_verified:
+        create_verify_token_and_send_to_email(email=user.email)
+
+    return user
 
 
 @users_router.get("/me", response_model=GetUser)

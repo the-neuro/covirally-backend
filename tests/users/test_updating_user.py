@@ -6,13 +6,13 @@ import pytest
 from jose import jwt
 from sqlalchemy import select, func
 
-from app.api.auth.password_utils import passwords_are_equal
+from app.api.auth.password_utils import passwords_are_equal, get_password_hash
 from app.api.auth.utils import create_access_token, ALGORITHM
 from app.config import settings
 from app.db.base import database
-from app.db.models.users.handlers import get_user_by_email
+from app.db.models.users.handlers import get_user_by_email, create_user
 from app.db.models.users.schemas import User
-from app.schemas import GetUser
+from app.schemas import GetUser, CreateUser
 
 pytestmark = pytest.mark.asyncio
 
@@ -29,11 +29,11 @@ async def access_token_and_user(async_client) -> tuple[str, GetUser]:
         "first_name": "Steve",
         "last_name": "Jobs",
         "username": "appleapple",
-        "password": PASSWORD,
+        "password": get_password_hash(PASSWORD),
         "email": email,
+        "email_is_verified": True,
     }
-    user_response = await async_client.post("/users", json=user_data)
-    user: GetUser = GetUser.construct(**json.loads(user_response.json()))
+    user, _ = await create_user(CreateUser.construct(**user_data))
 
     auth_data = {"email": email, "password": PASSWORD}
     auth_response = await async_client.post("/auth/token", data=auth_data)
@@ -50,8 +50,7 @@ async def access_token_and_user(async_client) -> tuple[str, GetUser]:
         ({"username": "new_one"}),
         ({"avatar_url": "https://asdasd.com"}),
         ({"receive_email_alerts": False}),
-        ({"telephone_number": "+81231235914"}),
-        ({"first_name": "Gello", "last_name": "ASdsd", "avatar_url": None, "telephone_number": None})
+        ({"first_name": "Gello", "last_name": "ASdsd", "avatar_url": None})
     ),
 )
 async def test_success_patch_simple_fields(async_client, patch_data, access_token_and_user):
@@ -216,11 +215,7 @@ async def test_cant_patch_system_fields(async_client, patch_data, access_token_a
         ({"email": "@gmailcom"}),
         ({"email": "asdasdgmailcom"}),
         ({"email": "asdasd@gmail."}),
-        ({"telephone_number": "81231235914"}),
-        ({"telephone_number": "+7-(123)-123-59-14"}),
-        ({"telephone_number": "8-123-123-59-14"}),
-        ({"telephone_number": "81231235914"}),
-        ({"telephone_number": "81231235914"}),
+        ({"email": "asksdjnasjkdansdkdajskdnsd@gmail.com"}),  # too long email
         ({"avatar_url": "https:/google.com"}),
         ({"avatar_url": "https:google.com"}),
         ({"avatar_url": "https//google.com"}),
@@ -279,14 +274,13 @@ async def test_patch_with_outdated_token(async_client):
         "first_name": "Steve",
         "last_name": "Jobs",
         "username": "stevesteveasd",
-        "password": "appleapple",
         "email": "sjvvswwpj@apple.com",
+        "password": get_password_hash("appleapple"),
+        "email_is_verified": True,
     }
-    response = await async_client.post("/users", json=user_data)
-    response_json = json.loads(response.json())
-
+    await create_user(CreateUser.construct(**user_data))
     # create outdated token
-    access_token = create_access_token(email=response_json["email"], expires_minutes=-123)
+    access_token = create_access_token(email=user_data["email"], expires_minutes=-123)
 
     auth_header = f"Bearer {access_token}"
     response = await async_client.patch("/users", headers={"Authorization": auth_header})

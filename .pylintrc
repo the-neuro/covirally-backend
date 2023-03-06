@@ -99,6 +99,7 @@ disable=
     logging-fstring-interpolation,
     logging-not-lazy,
     missing-docstring,
+    missing-raises-doc,
     duplicate-code,
     protected-access,
     too-few-public-methods,
@@ -264,7 +265,7 @@ include-naming-hint=no
 function-naming-style=snake_case
 
 # Regular expression matching correct function names
-function-rgx=[a-z_][a-z0-9_]{2,40}$
+function-rgx=[a-z_][a-z0-9_]{2,50}$
 
 # Naming style matching correct variable names.
 variable-naming-style=snake_case

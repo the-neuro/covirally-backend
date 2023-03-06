@@ -20,11 +20,16 @@ class Settings(BaseSettings):
 
     sentry_dsn: str | None = os.getenv("APP_ENV", default=None)
 
+    server_host: str = "0.0.0.0"
+    frontend_host: str = "covirally.com"
+
     secret_jwt_token: str = os.getenv("SECRET_JWT_TOKEN", "")
 
     database_url: str | PostgresDsn = os.getenv("DATABASE_URL")
     max_connection_count: int = 10
     min_connection_count: int = 10
+
+    mailgun_api_key: str
 
     @property
     def db_options(self) -> dict[str, Any]:
@@ -48,3 +53,5 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+if settings.app_env == AppEnvTypes.PROD:
+    assert settings.server_host != "0.0.0.0", "Please provide server host name in .env"

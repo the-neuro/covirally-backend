@@ -4,6 +4,7 @@ import pytest
 
 from alembic.config import Config
 from httpx import AsyncClient
+from sqlalchemy_utils import database_exists, create_database
 
 from app.config import settings, AppEnvTypes
 from app.db.base import database
@@ -33,6 +34,9 @@ def db_url() -> str:
 
 @pytest.fixture(autouse=True, scope="module")
 async def connect_db(db_url: str) -> AsyncGenerator:
+    if not database_exists(db_url):
+        create_database(db_url)
+
     try:
         await connect_to_db()
         yield
