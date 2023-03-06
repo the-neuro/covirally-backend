@@ -56,7 +56,7 @@ case ${COMMAND} in
         handle_exit $? "Mypy error!"
         ;;
     check-pylint)
-        pylint app/
+        pylint --rcfile=.pylintrc app/
         handle_exit $? "Pylint error!"
         ;;
     check)
