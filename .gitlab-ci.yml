@@ -4,6 +4,7 @@ stages:
 
 variables:
   GIT_DEPTH: 0
+  DATABASE_URL: $DATABASE_URL
 
 #run_linters:
 #  image: python:3.10-slim-buster
