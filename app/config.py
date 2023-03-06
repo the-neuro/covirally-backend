@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     max_connection_count: int = 10
     min_connection_count: int = 10
 
+    mailgun_api_key: str
+
     @property
     def db_options(self) -> dict[str, Any]:
         if "postgres" in self.database_url:
