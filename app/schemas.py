@@ -21,7 +21,7 @@ class _BaseUser(BaseModel):
     )
 
     email: str | None = Field(
-        default=None, max_length=128, regex=EMAIL_REGEX, example="random@gmail.com"
+        default=None, max_length=35, regex=EMAIL_REGEX, example="random@gmail.com"
     )
 
     receive_email_alerts: bool | None = Field(default=None)
@@ -37,7 +37,7 @@ class CreateUser(_BaseUser):
 
     password: str = Field(min_length=8, max_length=256)
 
-    email: str = Field(max_length=128, regex=EMAIL_REGEX, example="random@gmail.com")
+    email: str = Field(max_length=35, regex=EMAIL_REGEX, example="random@gmail.com")
 
     receive_email_alerts: bool = True
 
@@ -52,7 +52,7 @@ class GetUser(_BaseUser):
     first_name: str = Field(min_length=1, max_length=64)
     last_name: str = Field(min_length=1, max_length=64)
 
-    email: str = Field(max_length=128, regex=EMAIL_REGEX, example="random@gmail.com")
+    email: str = Field(max_length=35, regex=EMAIL_REGEX, example="random@gmail.com")
     receive_email_alerts: bool
 
     created_at: datetime
