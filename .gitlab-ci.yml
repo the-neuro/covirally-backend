@@ -1,10 +1,12 @@
-default:
-  image: python:3.10-slim-buster
-
 stages:
-  - linters
+#  - linters  todo: uncomment
+  - deploy
+
+variables:
+  GIT_DEPTH: 0
 
 run_linters:
+  image: python:3.10-slim-buster
   stage: linters
   before_script:
     - apt-get update && apt-get install make && apt-get install -y git
@@ -13,3 +15,13 @@ run_linters:
     - pre-commit install
   script:
     - pre-commit run -a
+
+deploy:
+  stage: deploy
+  image: dokku/ci-docker-image
+  only:
+    - dev-add-deployment  # todo: change to dev
+  variables:
+    GIT_REMOTE_URL: ssh://dokku@35.206.107.72:22/api-dev
+  script: dokku-deploy
+  after_script: [dokku-unlock]
