@@ -13,7 +13,7 @@ class User(Base):
     first_name = Column(String(length=64), nullable=False)
     last_name = Column(String(length=64), nullable=False)
 
-    username = Column(String(length=64), unique=True, index=True, nullable=True)
+    username = Column(String(length=64), unique=True, index=True, nullable=False)
     password = Column(String(length=256), nullable=True)
     avatar_url = Column(String, nullable=True)
 

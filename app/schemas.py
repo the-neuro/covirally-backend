@@ -34,6 +34,7 @@ class CreateUser(_BaseUser):
 
     first_name: str = Field(min_length=1, max_length=64)
     last_name: str = Field(min_length=1, max_length=64)
+    username: str = Field(min_length=2, max_length=64)
 
     password: str = Field(min_length=8, max_length=256)
 
@@ -51,6 +52,7 @@ class GetUser(_BaseUser):
 
     first_name: str = Field(min_length=1, max_length=64)
     last_name: str = Field(min_length=1, max_length=64)
+    username: str = Field(min_length=2, max_length=64)
 
     email: str = Field(max_length=35, regex=EMAIL_REGEX, example="random@gmail.com")
     receive_email_alerts: bool

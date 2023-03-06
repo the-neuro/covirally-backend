@@ -57,8 +57,9 @@ pytestmark = pytest.mark.asyncio
         ({
             "first_name": "Steve",
             "last_name": "Jobs",
+            "username": "steve_jobs_33amsldk1",
             "password": "appleapple",
-            "email": "sjlj@apple.com",
+            "email": "sjlasddajlskdjlnalsdj4215@apple.com",
         }),
         ({
             "first_name": "Steve",
@@ -153,6 +154,7 @@ async def test_cant_create_with_same_emails(async_client):
     (
         ({"first_name": "aasd"}),
         ({"first_name": "aasd", "last_name": "asd"}),
+        ({"first_name": "aasd", "last_name": "asd", "password": "asdasdasd", "email": "asdgmail.com"}),
         ({"first_name": "aasd", "last_name": "asd", "username": "addsasd", "email": "asd@gmail.com"}),
         ({"first_name": "aasd", "last_name": "asd", "username": "addsasd", "password": "asdasdasd", "email": "asaskdjnasldkjnasdlkajsdna@gmail.com"}),
         ({"first_name": "aasd", "last_name": "asd", "username": "addsasd", "password": "1", "email": "asd@gmail.com"}),
