@@ -6,13 +6,13 @@ import pytest
 from jose import jwt
 from sqlalchemy import select, func
 
-from app.api.auth.password_utils import passwords_are_equal
+from app.api.auth.password_utils import passwords_are_equal, get_password_hash
 from app.api.auth.utils import create_access_token, ALGORITHM
 from app.config import settings
 from app.db.base import database
-from app.db.models.users.handlers import get_user_by_email
+from app.db.models.users.handlers import get_user_by_email, create_user
 from app.db.models.users.schemas import User
-from app.schemas import GetUser
+from app.schemas import GetUser, CreateUser
 
 pytestmark = pytest.mark.asyncio
 
@@ -29,11 +29,11 @@ async def access_token_and_user(async_client) -> tuple[str, GetUser]:
         "first_name": "Steve",
         "last_name": "Jobs",
         "username": "appleapple",
-        "password": PASSWORD,
+        "password": get_password_hash(PASSWORD),
         "email": email,
+        "email_is_verified": True,
     }
-    user_response = await async_client.post("/users", json=user_data)
-    user: GetUser = GetUser.construct(**json.loads(user_response.json()))
+    user, _ = await create_user(CreateUser.construct(**user_data))
 
     auth_data = {"email": email, "password": PASSWORD}
     auth_response = await async_client.post("/auth/token", data=auth_data)
@@ -274,14 +274,13 @@ async def test_patch_with_outdated_token(async_client):
         "first_name": "Steve",
         "last_name": "Jobs",
         "username": "stevesteveasd",
-        "password": "appleapple",
         "email": "sjvvswwpj@apple.com",
+        "password": get_password_hash("appleapple"),
+        "email_is_verified": True,
     }
-    response = await async_client.post("/users", json=user_data)
-    response_json = json.loads(response.json())
-
+    await create_user(CreateUser.construct(**user_data))
     # create outdated token
-    access_token = create_access_token(email=response_json["email"], expires_minutes=-123)
+    access_token = create_access_token(email=user_data["email"], expires_minutes=-123)
 
     auth_header = f"Bearer {access_token}"
     response = await async_client.patch("/users", headers={"Authorization": auth_header})

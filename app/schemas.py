@@ -5,9 +5,8 @@ import pytz  # type: ignore
 from pydantic import BaseModel, validator, Field, root_validator
 
 from app.api.auth.password_utils import get_password_hash
-from app.types import TaskStatus
+from app.types import TaskStatus, EMAIL_REGEX
 
-EMAIL_REGEX = r"([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+"
 URL_REGEX = r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"  # noqa
 
 
@@ -27,6 +26,8 @@ class _BaseUser(BaseModel):
     )
 
     receive_email_alerts: bool | None = Field(default=None)
+    email_is_verified: bool | None = Field(default=None)
+    email_verified_at: datetime | None = Field(default=None)
 
 
 class CreateUser(_BaseUser):
@@ -48,6 +49,14 @@ class CreateUser(_BaseUser):
     def hash_password(cls, password: str) -> str:  # pylint: disable=no-self-argument
         return get_password_hash(password)
 
+    @root_validator()
+    def explicitly_set_to_default_values(  # pylint: disable=no-self-argument
+        cls, values: dict[str, Any]
+    ) -> dict[str, Any]:
+        values["email_is_verified"] = False
+        values["email_verified_at"] = None
+        return values
+
 
 class GetUser(_BaseUser):
     id: str  # noqa
@@ -58,6 +67,8 @@ class GetUser(_BaseUser):
 
     email: str = Field(max_length=35, regex=EMAIL_REGEX, example="random@gmail.com")
     receive_email_alerts: bool
+    email_is_verified: bool
+    email_verified_at: datetime | None
 
     created_at: datetime
 

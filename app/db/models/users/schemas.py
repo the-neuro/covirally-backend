@@ -18,6 +18,8 @@ class User(Base):
     avatar_url = Column(String, nullable=True)
 
     email = Column(String(length=35), unique=True, index=True)
+    email_is_verified = Column(Boolean, default=False, nullable=False)
+    email_verified_at = Column(DateTime(timezone=True), nullable=True)
 
     receive_email_alerts = Column(Boolean, default=True)
 

@@ -5,8 +5,10 @@ from http import HTTPStatus
 
 import pytest
 
+from app.api.auth.password_utils import get_password_hash
 from app.db.models.tasks.handlers import get_task_by_id
-from app.schemas import GetUser, GetTaskNoForeigns
+from app.db.models.users.handlers import create_user
+from app.schemas import GetUser, GetTaskNoForeigns, CreateUser
 from app.types import TaskStatus
 from tests.utils import get_iso_datetime_until_now, get_random_string
 
@@ -24,11 +26,11 @@ async def access_token_and_user(async_client) -> tuple[str, GetUser]:
         "first_name": "Steve",
         "last_name": "Jobs",
         "username": "appleapple",
-        "password": PASSWORD,
+        "password": get_password_hash(PASSWORD),
         "email": email,
+        "email_is_verified": True,
     }
-    user_response = await async_client.post("/users", json=user_data)
-    user: GetUser = GetUser.construct(**json.loads(user_response.json()))
+    user, _ = await create_user(CreateUser.construct(**user_data))
 
     auth_data = {"email": email, "password": PASSWORD}
     auth_response = await async_client.post("/auth/token", data=auth_data)
@@ -47,11 +49,11 @@ async def access_token_and_random_user(async_client) -> tuple[str, GetUser]:
         "first_name": "Steve",
         "last_name": "Jobs",
         "username": "appleapplebnris",
-        "password": PASSWORD,
+        "password": get_password_hash(PASSWORD),
         "email": email,
+        "email_is_verified": True,
     }
-    user_response = await async_client.post("/users", json=user_data)
-    user: GetUser = GetUser.construct(**json.loads(user_response.json()))
+    user, _ = await create_user(CreateUser.construct(**user_data))
 
     auth_data = {"email": email, "password": PASSWORD}
     auth_response = await async_client.post("/auth/token", data=auth_data)
@@ -70,11 +72,11 @@ async def access_token_and_subscriber(async_client) -> tuple[str, GetUser]:
         "first_name": "Steve",
         "last_name": "Jobs",
         "username": "asdkmaafvldf",
-        "password": PASSWORD,
+        "password": get_password_hash(PASSWORD),
         "email": email,
+        "email_is_verified": True,
     }
-    user_response = await async_client.post("/users", json=user_data)
-    creator: GetUser = GetUser.construct(**json.loads(user_response.json()))
+    creator, _ = await create_user(CreateUser.construct(**user_data))
 
     auth_data = {"email": email, "password": PASSWORD}
     auth_response = await async_client.post("/auth/token", data=auth_data)

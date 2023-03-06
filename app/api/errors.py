@@ -3,11 +3,11 @@ from http import HTTPStatus
 from fastapi import HTTPException
 
 
-class InvalidCredentials(HTTPException):
-    def __init__(self) -> None:
+class InvalidAuthorization(HTTPException):
+    def __init__(self, msg: str) -> None:
         super().__init__(
             status_code=HTTPStatus.UNAUTHORIZED,
-            detail="Invalid credentials for authorization",
+            detail=msg,
         )
 
 
@@ -93,3 +93,27 @@ class NotCreatorPermissionError(HTTPException):
     def __init__(self) -> None:
         msg = "Only creator is allowed to do it."
         super().__init__(status_code=HTTPStatus.FORBIDDEN, detail=msg)
+
+
+class InvalidVerifyEmailToken(HTTPException):
+    def __init__(self) -> None:
+        msg = "Token is invalid."
+        super().__init__(status_code=HTTPStatus.UNAUTHORIZED, detail=msg)
+
+
+class EmailIsAlreadyVerified(HTTPException):
+    def __init__(self, email: str) -> None:
+        msg = f"Email {email} is already verified."
+        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
+
+
+class RefreshPasswordTokenIsExpired(HTTPException):
+    def __init__(self) -> None:
+        msg = "Refresh password token is expired."
+        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
+
+
+class InvalidRefreshPasswordToken(HTTPException):
+    def __init__(self) -> None:
+        msg = "Refresh password token is invalid."
+        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)

@@ -21,7 +21,8 @@ from app.api.auth.password_utils import (
 
 from app.config import settings
 from app.db.models.users.handlers import update_user, get_user_by_email
-from app.schemas import GetUser, EMAIL_REGEX
+from app.schemas import GetUser
+from app.types import EMAIL_REGEX
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
@@ -77,14 +78,19 @@ class OAuth2PasswordEmailRequestForm:
         self.client_secret = client_secret
 
 
-async def authenticate_user(email: str, password: str) -> GetUser | None:
+async def authenticate_user(
+    email: str, password: str
+) -> tuple[GetUser | None, str | None]:
     if not (user := await get_user_by_email(email)):
-        return None
-    if not user.password:
-        return None
-    if not passwords_are_equal(password, user.password):
-        return None
-    return user
+        return None, f"User with {email=} doesn't exist."
+
+    # todo: don't do this check when user is registered via google, twitter, FB, etc
+    if not user.email_is_verified:
+        return None, f"Email {email} is not verified."
+
+    if user.password and not passwords_are_equal(password, user.password):
+        return None, "Invlaid password"
+    return user, None
 
 
 def create_access_token(
