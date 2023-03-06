@@ -215,6 +215,7 @@ async def test_cant_patch_system_fields(async_client, patch_data, access_token_a
         ({"email": "@gmailcom"}),
         ({"email": "asdasdgmailcom"}),
         ({"email": "asdasd@gmail."}),
+        ({"email": "asksdjnasjkdansdkdajskdnsd@gmail.com"}),  # too long email
         ({"avatar_url": "https:/google.com"}),
         ({"avatar_url": "https:google.com"}),
         ({"avatar_url": "https//google.com"}),
