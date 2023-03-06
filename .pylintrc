@@ -99,6 +99,7 @@ disable=
     logging-fstring-interpolation,
     logging-not-lazy,
     missing-docstring,
+    missing-raises-doc,
     duplicate-code,
     protected-access,
     too-few-public-methods,

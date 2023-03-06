@@ -50,8 +50,7 @@ async def access_token_and_user(async_client) -> tuple[str, GetUser]:
         ({"username": "new_one"}),
         ({"avatar_url": "https://asdasd.com"}),
         ({"receive_email_alerts": False}),
-        ({"telephone_number": "+81231235914"}),
-        ({"first_name": "Gello", "last_name": "ASdsd", "avatar_url": None, "telephone_number": None})
+        ({"first_name": "Gello", "last_name": "ASdsd", "avatar_url": None})
     ),
 )
 async def test_success_patch_simple_fields(async_client, patch_data, access_token_and_user):
@@ -216,11 +215,7 @@ async def test_cant_patch_system_fields(async_client, patch_data, access_token_a
         ({"email": "@gmailcom"}),
         ({"email": "asdasdgmailcom"}),
         ({"email": "asdasd@gmail."}),
-        ({"telephone_number": "81231235914"}),
-        ({"telephone_number": "+7-(123)-123-59-14"}),
-        ({"telephone_number": "8-123-123-59-14"}),
-        ({"telephone_number": "81231235914"}),
-        ({"telephone_number": "81231235914"}),
+        ({"email": "asksdjnasjkdansdkdajskdnsd@gmail.com"}),  # too long email
         ({"avatar_url": "https:/google.com"}),
         ({"avatar_url": "https:google.com"}),
         ({"avatar_url": "https//google.com"}),

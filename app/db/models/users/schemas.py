@@ -13,12 +13,11 @@ class User(Base):
     first_name = Column(String(length=64), nullable=False)
     last_name = Column(String(length=64), nullable=False)
 
-    username = Column(String(length=64), unique=True, index=True, nullable=True)
+    username = Column(String(length=64), unique=True, index=True, nullable=False)
     password = Column(String(length=256), nullable=True)
     avatar_url = Column(String, nullable=True)
 
-    email = Column(String(length=128), unique=True, index=True)
-    telephone_number = Column(String(length=12), nullable=True)
+    email = Column(String(length=35), unique=True, index=True)
 
     receive_email_alerts = Column(Boolean, default=True)
 

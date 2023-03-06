@@ -63,3 +63,33 @@ class BadRequestUpdatingUser(HTTPException):
     def __init__(self, exc: str) -> None:
         msg = f"Can't update user: {exc}"
         super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
+
+
+class BadRequestCreatingTask(HTTPException):
+    def __init__(self, exc: str) -> None:
+        msg = f"Can't create task: {exc}"
+        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
+
+
+class InvalidCreatorSuggesterIds(HTTPException):
+    def __init__(self, exc: str) -> None:
+        msg = f"Can't create task: {exc}"
+        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
+
+
+class BadRequestUpdatingTask(HTTPException):
+    def __init__(self, exc: str) -> None:
+        msg = f"Can't update task: {exc}"
+        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
+
+
+class TaskNotFound(HTTPException):
+    def __init__(self, task_id: str) -> None:
+        msg = f"No task with {task_id=}"
+        super().__init__(status_code=HTTPStatus.NOT_FOUND, detail=msg)
+
+
+class NotCreatorPermissionError(HTTPException):
+    def __init__(self) -> None:
+        msg = "Only creator is allowed to do it."
+        super().__init__(status_code=HTTPStatus.FORBIDDEN, detail=msg)

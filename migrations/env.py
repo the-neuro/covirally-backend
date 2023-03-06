@@ -9,6 +9,7 @@ from app.config import settings
 from app.db.base import Base, database
 
 from app.db.models.users.schemas import User
+from app.db.models.tasks.schemas import Task
 
 
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[3]))
@@ -34,6 +35,7 @@ def run_migrations_online() -> None:
             connection=connection,
             target_metadata=target_metadata,
             render_as_batch=settings.render_as_batch,
+            compare_type=True,
         )
 
         with context.begin_transaction():
