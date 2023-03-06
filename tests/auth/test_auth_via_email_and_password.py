@@ -53,6 +53,23 @@ async def test_cant_auth_user_with_wrong_password(async_client):
     assert response.status_code == HTTPStatus.UNAUTHORIZED, response.text
 
 
+async def test_cant_auth_with_not_verified_email(async_client):
+    email, password = "sjbdfvdf@apple.com", "dfslbnsrn"
+    user_data = {
+        "first_name": "Steve",
+        "last_name": "Jobs",
+        "username": "appleapplalskde",
+        "password": get_password_hash(password),
+        "email": email,
+        "email_is_verified": False,
+    }
+    await create_user(CreateUser.construct(**user_data))
+
+    auth_data = {"email": email, "password": password}
+    response = await async_client.post("/auth/token", data=auth_data)
+    assert response.status_code == HTTPStatus.UNAUTHORIZED, response.text
+
+
 async def test_success_auth(async_client):
     # create user in db
     username, password, email = "stevesteve", "appleapple", "sjvvxcvxcv@apple.com"

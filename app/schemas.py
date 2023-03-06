@@ -45,6 +45,17 @@ class CreateUser(_BaseUser):
 
     receive_email_alerts: bool = True
 
+    @root_validator(pre=True)
+    def check_cant_create_with_system_fields(  # pylint: disable=no-self-argument
+        cls, values: dict[str, Any]
+    ) -> dict[str, Any]:
+        system_fields = ("id", "created_at", "email_is_verified", "email_verified_at")
+
+        system_fields_in_request = [field for field in system_fields if field in values]
+        err = f"Can't create with following fields: {system_fields_in_request}"
+        assert not system_fields_in_request, err
+        return values
+
     @validator("password")
     def hash_password(cls, password: str) -> str:  # pylint: disable=no-self-argument
         return get_password_hash(password)
@@ -117,7 +128,7 @@ class UpdateUser(_BaseUser):
     def check_cant_patch_system_fields(  # pylint: disable=no-self-argument
         cls, values: dict[str, Any]
     ) -> dict[str, Any]:
-        system_fields = ("id", "created_at")
+        system_fields = ("id", "created_at", "email_is_verified", "email_verified_at")
 
         system_fields_in_request = [field for field in system_fields if field in values]
         err = f"Following fields can't be updated: {system_fields_in_request}"

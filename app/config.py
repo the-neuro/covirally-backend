@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     app_env: AppEnvTypes = AppEnvTypes.PROD
 
     server_host: str = "0.0.0.0"
+    frontend_host: str = "covirally.com"
 
     sentry_dsn: str
 

@@ -1,3 +1,6 @@
+import uuid
+from unittest.mock import patch, MagicMock
+
 import pytest
 from sqlalchemy import select, func
 
@@ -5,7 +8,7 @@ from app.api.auth.password_utils import passwords_are_equal
 from app.db.base import database
 from app.db.models.users.handlers import get_user_by_email
 from app.db.models.users.schemas import User
-
+from tests.utils import get_iso_datetime_until_now
 
 pytestmark = pytest.mark.asyncio
 
@@ -63,7 +66,8 @@ pytestmark = pytest.mark.asyncio
         }),
     ),
 )
-async def test_valid_cases(async_client, valid_data):
+@patch("app.api.users.routers.create_verify_token_and_send_to_email", return_value=None)
+async def test_valid_cases(send_verification_email: MagicMock, async_client, valid_data):
     """
     Test all valid cases for creating users
     Assert that required fields are in response
@@ -81,11 +85,16 @@ async def test_valid_cases(async_client, valid_data):
     assert user_in_db.username == valid_data["username"]
     assert user_in_db.receive_email_alerts == valid_data.get("receive_email_alerts", True)
     assert user_in_db.avatar_url == valid_data.get("avatar_url")
+    assert not user_in_db.email_is_verified
+    assert user_in_db.email_verified_at is None
 
     # check that password is hashed and equal to one from request
     assert passwords_are_equal(
         password=valid_data["password"], hashed_password=user_in_db.password
     )
+
+    # check that confirmation email is sent
+    send_verification_email.assert_called_once_with(email=valid_data['email'])
 
     json_response = response.json()
     for key in ("id", "created_at"):
@@ -161,3 +170,32 @@ async def test_invalid_cases(async_client, data):
     response = await async_client.post("/users", json=data)
 
     assert response.status_code == 400, response.text
+
+
+@pytest.mark.parametrize(
+    "system_fields",
+    (
+        ({"id": str(uuid.uuid4())}),
+        ({"created_at": get_iso_datetime_until_now()}),
+        ({"email_is_verified": True}),
+        ({"email_is_verified": False}),
+        ({"email_verified_at": get_iso_datetime_until_now(days=2)}),
+        ({"email_verified_at": None}),
+    ),
+)
+async def test_cant_create_with_system_fields(async_client, system_fields):
+    email = "sjxkafdsjcv@apple.com"
+    valid_user_data = {
+        "first_name": "Steve",
+        "last_name": "Jobs",
+        "username": "steve_joalfgbs_331",
+        "password": "appleapple",
+        "email": email,
+    }
+    user_data_with_system_fields = dict(**valid_user_data, **system_fields)
+
+    response = await async_client.post("/users", json=user_data_with_system_fields)
+    assert response.status_code == 400, f"Can't change system fields: {response.text}"
+
+    user_in_db = await get_user_by_email(email)
+    assert user_in_db is None, f"User cant be created with system fields: {system_fields}"
