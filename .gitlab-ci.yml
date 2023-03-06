@@ -27,5 +27,6 @@ deploy:
     DATABASE_URL_2: $DATABASE_URL
   before_script:
     - echo "DATABASE_URL is $DATABASE_URL and DATABASE_URL_2 is $DATABASE_URL_2"
+    - echo "DATABASE_URL=$DATABASE_URL" > .env
   script: dokku-deploy
   after_script: [dokku-unlock]

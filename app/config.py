@@ -18,7 +18,7 @@ class AppEnvTypes(Enum):
 class Settings(BaseSettings):
     app_env: AppEnvTypes = AppEnvTypes(os.getenv("APP_ENV", AppEnvTypes.PROD))
 
-    sentry_dsn: str | None = os.getenv("APP_ENV", default=None)
+    sentry_dsn: str | None = os.getenv("SENTRY_DSN", default=None)
 
     server_host: str = "0.0.0.0"
     frontend_host: str = "covirally.com"

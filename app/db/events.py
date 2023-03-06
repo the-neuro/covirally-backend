@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 
+from app.config import settings
 from app.db.base import database
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -12,7 +13,8 @@ async def connect_to_db() -> None:
     logger.info("Connecting to Database")
 
     # todo: uncomment
-    print(f'{os.getenv("GCP_REGION")=}')
+    print(f'{os.getenv("DATABASE_URL")=}')
+    print(f'{settings.database_url=}')
     # await database.connect()
 
     logger.info("Connection established")
