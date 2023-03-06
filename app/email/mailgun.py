@@ -121,5 +121,25 @@ class MailgunClient:
         )
         return await self.send_message(params)
 
+    async def send_refresh_password(
+        self, refresh_password_token: str, to_address: str
+    ) -> str | None:
+        change_password_frontend_url = (
+            f"https://covirally.com/refresh-password/{refresh_password_token}"
+        )
+
+        # todo: change body (take from mailgun templates)
+        body = f"""
+    <html>
+    Go <a href='{change_password_frontend_url}'>here </a> to update your password
+    </html>
+        """
+        params = SendMessageParams(
+            from_covirally_user="no-reply",
+            to_addresses=to_address,
+            html=body,
+        )
+        return await self.send_message(params)
+
 
 mailgun = MailgunClient(api_key=settings.mailgun_api_key)
