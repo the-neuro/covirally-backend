@@ -23,7 +23,6 @@ class _BaseUser(BaseModel):
     email: str | None = Field(
         default=None, max_length=128, regex=EMAIL_REGEX, example="random@gmail.com"
     )
-    telephone_number: str | None = Field(default=None, regex=r"^\+\d{11}$")
 
     receive_email_alerts: bool | None = Field(default=None)
 

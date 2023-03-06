@@ -20,7 +20,6 @@ pytestmark = pytest.mark.asyncio
             "password": "appleapple",
             "email": "sjpd@apple.com",
             "receive_email_alerts": True,
-            "telephone_number": "+71231231231",
             "avatar_url": "https://google.com/some_picture.jpg",
         }),
         ({
@@ -29,7 +28,6 @@ pytestmark = pytest.mark.asyncio
             "username": "steve_jobs_Asd",
             "password": "appleapple",
             "email": "sjca@apple.com",
-            "telephone_number": "+71231231231",
             "avatar_url": "https://google.com/some_picture.jpg",
         }),
         ({
@@ -48,7 +46,6 @@ pytestmark = pytest.mark.asyncio
             "password": "appleapple",
             "email": "sj2@apple.com",
             "receive_email_alerts": True,
-            "telephone_number": "+71231231231",
         }),
         ({
             "first_name": "Steve",
@@ -82,7 +79,6 @@ async def test_valid_cases(async_client, valid_data):
     assert user_in_db.email == valid_data["email"]
     assert user_in_db.username == valid_data.get("username")
     assert user_in_db.receive_email_alerts == valid_data.get("receive_email_alerts", True)
-    assert user_in_db.telephone_number == valid_data.get("telephone_number")
     assert user_in_db.avatar_url == valid_data.get("avatar_url")
 
     # check that password is hashed and equal to one from request
