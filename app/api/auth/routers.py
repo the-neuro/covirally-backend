@@ -20,12 +20,8 @@ from app.api.auth.verify_email import (
     create_verify_token_and_send_to_email,
 )
 from app.api.errors import InvalidAuthorization, UserNotFound, EmailIsAlreadyVerified
-from app.api.auth.schemas import (
-    GetBearerAccessTokenResponse,
-    ResendVerifyEmail,
-    RefreshPasswordForEmail,
-    RefreshPassword,
-)
+from app.api.auth.schemas import GetBearerAccessTokenResponse, ResendVerifyEmail
+from app.config import settings
 from app.db.models.users.handlers import update_user, get_user_by_email
 
 auth_router = APIRouter(tags=["Authentication"], prefix="/auth")
@@ -62,15 +58,16 @@ async def verify_email_via_jwt_token(token: str) -> RedirectResponse:
 
     # todo: change this url for both cases
     if user.email_is_verified:
-        redirect_url = "https://covirally.com"
+        redirect_url = f"https://{settings.frontend_host}"
     else:
-        redirect_url = "https://covirally.com/pricing"
+        redirect_url = f"https://{settings.frontend_host}/pricing"
         update_data = {
             "email_is_verified": True,
             "email_verified_at": datetime.now(timezone.utc),
         }
         await update_user(user_id=user.id, values=update_data)
-    return RedirectResponse(url=redirect_url)
+
+    return RedirectResponse(url=redirect_url, status_code=HTTPStatus.PERMANENT_REDIRECT)
 
 
 @auth_router.post("/verifyemail/resend")
@@ -82,20 +79,3 @@ async def resend_verification_email(params: ResendVerifyEmail) -> None:
         raise EmailIsAlreadyVerified(user.email)
 
     create_verify_token_and_send_to_email(email=user.email)
-
-
-@auth_router.post("/refresh-password/")
-async def send_refresh_password_email(params: RefreshPasswordForEmail) -> None:
-    if not (user := await get_user_by_email(email=params.email)):
-        raise UserNotFound(params.email)
-
-    create_refresh_password_token_and_send(email=user.email)
-
-
-@auth_router.post("/refresh-password/{token}")
-async def change_password_via_token(
-    token: str,
-    params: RefreshPassword,
-) -> None:
-    user = await get_user_from_refresh_password_token(token)
-    await update_user(user_id=user.id, values={"password": params.password})

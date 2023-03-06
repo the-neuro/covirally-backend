@@ -98,22 +98,10 @@ class NotCreatorPermissionError(HTTPException):
 class InvalidVerifyEmailToken(HTTPException):
     def __init__(self) -> None:
         msg = "Token is invalid."
-        super().__init__(status_code=HTTPStatus.UNAUTHORIZED, detail=msg)
+        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
 
 
 class EmailIsAlreadyVerified(HTTPException):
     def __init__(self, email: str) -> None:
         msg = f"Email {email} is already verified."
-        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
-
-
-class RefreshPasswordTokenIsExpired(HTTPException):
-    def __init__(self) -> None:
-        msg = "Refresh password token is expired."
-        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
-
-
-class InvalidRefreshPasswordToken(HTTPException):
-    def __init__(self) -> None:
-        msg = "Refresh password token is invalid."
         super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)

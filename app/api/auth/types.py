@@ -14,8 +14,3 @@ class DataToEncodeInJWTToken(TypedDict):
 
 class VerificationEmailData(TypedDict):
     email: str
-
-
-class RefreshPasswordData(TypedDict):
-    email: str
-    exp: datetime

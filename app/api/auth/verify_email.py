@@ -1,5 +1,4 @@
 import asyncio
-from http import HTTPStatus
 
 from jose import jwt, JWTError
 
@@ -24,7 +23,7 @@ async def get_user_from_verify_email_token(verify_token: str) -> GetUser:
         raise InvalidVerifyEmailToken
 
     if not (user := await get_user_by_email(email)):
-        raise UserNotFound(email, status_code=HTTPStatus.UNAUTHORIZED)
+        raise UserNotFound(email)
     return user
 
 
