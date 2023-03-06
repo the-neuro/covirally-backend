@@ -63,3 +63,15 @@ class BadRequestUpdatingUser(HTTPException):
     def __init__(self, exc: str) -> None:
         msg = f"Can't update user: {exc}"
         super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
+
+
+class BadRequestCreatingTask(HTTPException):
+    def __init__(self, exc: str) -> None:
+        msg = f"Can't create task: {exc}"
+        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
+
+
+class InvalidCreatorSuggesterIds(HTTPException):
+    def __init__(self, exc: str) -> None:
+        msg = f"Can't create task: {exc}"
+        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
