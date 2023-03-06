@@ -29,6 +29,6 @@ deploy:
     APP_ENV: dev
   before_script:
     - echo "DATABASE_URL=$DATABASE_URL" > .env
-    - echo "APP_ENV=$APP_ENV" > .env
+    - echo "APP_ENV=dev" > .env
   script: dokku-deploy
   after_script: [dokku-unlock]
