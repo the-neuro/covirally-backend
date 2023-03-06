@@ -22,11 +22,13 @@ deploy:
   image: dokku/ci-docker-image
   only:
     - dev-add-deployment  # todo: change to dev
+  environment:
+    name: dev
   variables:
     GIT_REMOTE_URL: ssh://dokku@35.206.107.72:22/api-dev
-    DATABASE_URL_2: $DATABASE_URL
+    APP_ENV: dev
   before_script:
-    - echo "DATABASE_URL is $DATABASE_URL and DATABASE_URL_2 is $DATABASE_URL_2"
     - echo "DATABASE_URL=$DATABASE_URL" > .env
+    - echo "APP_ENV=$APP_ENV" > .env
   script: dokku-deploy
   after_script: [dokku-unlock]

@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     max_connection_count: int = 10
     min_connection_count: int = 10
 
-    mailgun_api_key: str
+    mailgun_api_key: str | None = os.getenv("MAILGUN_API_KEY")
 
     @property
     def db_options(self) -> dict[str, Any]:
