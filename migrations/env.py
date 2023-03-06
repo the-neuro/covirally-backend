@@ -9,6 +9,7 @@ from app.config import settings
 from app.db.base import Base, database
 
 from app.db.models.users.schemas import User
+from app.db.models.tasks.schemas import Task
 
 
 sys.path.append(str(pathlib.Path(__file__).resolve().parents[3]))

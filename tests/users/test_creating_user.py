@@ -84,7 +84,7 @@ async def test_valid_cases(async_client, valid_data):
     assert user_in_db.first_name == valid_data["first_name"]
     assert user_in_db.last_name == valid_data["last_name"]
     assert user_in_db.email == valid_data["email"]
-    assert user_in_db.username == valid_data.get("username")
+    assert user_in_db.username == valid_data["username"]
     assert user_in_db.receive_email_alerts == valid_data.get("receive_email_alerts", True)
     assert user_in_db.avatar_url == valid_data.get("avatar_url")
 
