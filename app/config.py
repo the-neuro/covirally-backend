@@ -13,6 +13,8 @@ class AppEnvTypes(Enum):
 class Settings(BaseSettings):
     app_env: AppEnvTypes = AppEnvTypes.PROD
 
+    server_host: str = "0.0.0.0"
+
     sentry_dsn: str
 
     secret_jwt_token: str
@@ -45,3 +47,5 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+if settings.app_env == AppEnvTypes.PROD:
+    assert settings.server_host != "0.0.0.0", "Please provide server host name in .env"

@@ -10,3 +10,12 @@ class AccessTokenType(str, Enum):
 class DataToEncodeInJWTToken(TypedDict):
     email: str
     exp: datetime
+
+
+class VerificationEmailData(TypedDict):
+    email: str
+
+
+class RefreshPasswordData(TypedDict):
+    email: str
+    exp: datetime

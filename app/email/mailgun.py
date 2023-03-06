@@ -102,5 +102,44 @@ class MailgunClient:
             error_message = json_response["message"]
         return error_message
 
+    async def send_email_confirmation(
+        self, verfiy_email_token: str, to_address: str
+    ) -> str | None:
+        url = f"http://{settings.server_host}/auth/verifyemail/{verfiy_email_token}"
+
+        # todo: change body (take from mailgun templates)
+        body = f"""
+    <html>
+    Please follow <a href='{url}'>this link </a> to confirm your email on covirally.com
+    </html>
+        """
+
+        params = SendMessageParams(
+            from_covirally_user="confirmemail",
+            to_addresses=to_address,
+            html=body,
+        )
+        return await self.send_message(params)
+
+    async def send_refresh_password(
+        self, refresh_password_token: str, to_address: str
+    ) -> str | None:
+        change_password_frontend_url = (
+            f"https://covirally.com/refresh-password/{refresh_password_token}"
+        )
+
+        # todo: change body (take from mailgun templates)
+        body = f"""
+    <html>
+    Go <a href='{change_password_frontend_url}'>here </a> to update your password
+    </html>
+        """
+        params = SendMessageParams(
+            from_covirally_user="no-reply",
+            to_addresses=to_address,
+            html=body,
+        )
+        return await self.send_message(params)
+
 
 mailgun = MailgunClient(api_key=settings.mailgun_api_key)

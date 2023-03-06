@@ -1,13 +1,14 @@
-import json
 import uuid
 from http import HTTPStatus
 
 import pytest
 from jose import jwt
 
-from app.api.auth.password_utils import passwords_are_equal
+from app.api.auth.password_utils import passwords_are_equal, get_password_hash
 from app.api.auth.utils import create_access_token, ALGORITHM
 from app.config import settings
+from app.db.models.users.handlers import create_user
+from app.schemas import CreateUser
 
 pytestmark = pytest.mark.asyncio
 
@@ -18,10 +19,11 @@ async def test_success_get(async_client):
         "first_name": "Steve",
         "last_name": "Jobs",
         "username": "ddmvaa2d",
-        "password": password,
+        "password": get_password_hash(password),
         "email": email,
+        "email_is_verified": True,
     }
-    await async_client.post("/users", json=user_data)
+    await create_user(CreateUser.construct(**user_data))
 
     auth_data = {"email": email, "password": password}
     auth_response = await async_client.post("/auth/token", data=auth_data)
@@ -46,7 +48,7 @@ async def test_success_get(async_client):
     assert user_response["email"] == user_data["email"], user_response
 
     assert passwords_are_equal(
-        password=user_data["password"], hashed_password=user_response["password"]
+        password=password, hashed_password=user_response["password"]
     ), "password didn't match"
 
 
@@ -86,14 +88,14 @@ async def test_get_with_outdated_token(async_client):
         "first_name": "Steve",
         "last_name": "Jobs",
         "username": "stevesteve",
-        "password": "appleapple",
+        "password": get_password_hash("password"),
         "email": "sj@apple.com",
+        "email_is_verified": True,
     }
-    response = await async_client.post("/users", json=user_data)
-    response_json = json.loads(response.json())
+    await create_user(CreateUser.construct(**user_data))
 
     # create outdated token
-    access_token = create_access_token(email=response_json["email"], expires_minutes=-123)
+    access_token = create_access_token(email=user_data["email"], expires_minutes=-123)
 
     auth_header = f"Bearer {access_token}"
     response = await async_client.get("/users/me", headers={"Authorization": auth_header})
