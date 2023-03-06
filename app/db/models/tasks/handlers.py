@@ -1,9 +1,10 @@
 import logging
+from typing import Any
 
-from asyncpg import NotNullViolationError, UniqueViolationError
+from asyncpg import NotNullViolationError, UniqueViolationError, ForeignKeyViolationError
 from databases.backends.postgres import Record
 from pydantic import ValidationError
-from sqlalchemy import insert, literal_column, select
+from sqlalchemy import insert, literal_column, select, update
 
 from app.db.base import database
 from app.db.models.tasks.schemas import Task
@@ -57,3 +58,26 @@ async def get_task_by_id(task_id: str) -> GetTaskNoForeigns | None:
         return None
     else:
         return parsed_task
+
+
+async def update_task(task_id: str, values: dict[str, Any]) -> str | None:
+    """
+    Returns optional error
+    """
+    if not values:
+        return None
+
+    query = update(Task).where(Task.id == task_id).values(values)
+    transaction = await database.transaction()
+    try:
+        await database.execute(query)
+    except (NotNullViolationError, UniqueViolationError) as exc:
+        await transaction.rollback()
+        return str(exc)
+    except ForeignKeyViolationError:
+        # no row with such foreign id
+        await transaction.rollback()
+        return "No row with such foreign key id"
+    else:
+        await transaction.commit()
+        return None

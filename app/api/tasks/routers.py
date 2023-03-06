@@ -1,11 +1,17 @@
 from http import HTTPStatus
+from typing import Any
 
 from fastapi import APIRouter, Depends
+from starlette.responses import JSONResponse
 
 from app.api.auth.utils import get_current_user
-from app.api.errors import BadRequestCreatingTask, InvalidCreatorSuggesterIds
-from app.db.models.tasks.handlers import create_task
-from app.schemas import CreateTask, GetTaskNoForeigns, GetUser
+from app.api.errors import (
+    BadRequestCreatingTask,
+    InvalidCreatorSuggesterIds,
+    BadRequestUpdatingTask, TaskNotFound, NotCreatorPermissionError,
+)
+from app.db.models.tasks.handlers import create_task, update_task, get_task_by_id
+from app.schemas import CreateTask, GetTaskNoForeigns, GetUser, UpdateTask
 
 task_router = APIRouter(tags=["Tasks"], prefix="/tasks")
 
@@ -31,3 +37,34 @@ async def create_new_task(
     assert task is not None
 
     return task
+
+
+@task_router.patch(
+    path="/{task_id}",
+    response_model=UpdateTask,
+    response_model_exclude_unset=True,
+    response_description="Dictionary with fields which were updated.",
+)
+async def update_task_info(
+    task_id: str,
+    update_task_params: UpdateTask,
+    current_user: GetUser = Depends(get_current_user),
+) -> UpdateTask:
+    update_data: dict[str, Any] = update_task_params.dict(exclude_unset=True)
+
+    if not (task := await get_task_by_id(task_id=task_id)):
+        raise TaskNotFound(task_id=task_id)
+
+    # if someone except creator is trying to change any fields
+    if task.creator_id != current_user.id:
+        raise NotCreatorPermissionError
+
+    if (err := await update_task(task_id=task_id, values=update_data)) is not None:
+        raise BadRequestUpdatingTask(exc=err)
+
+    # due date to string, json error otherwise
+    if "due_to_date" in update_data:
+        update_data["due_to_date"] = update_data["due_to_date"].isoformat()
+
+    res: JSONResponse = JSONResponse(content=update_data)
+    return res  # type: ignore

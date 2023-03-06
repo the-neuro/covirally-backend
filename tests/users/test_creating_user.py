@@ -61,12 +61,6 @@ pytestmark = pytest.mark.asyncio
             "password": "appleapple",
             "email": "sjlasddajlskdjlnalsdj4215@apple.com",
         }),
-        ({
-            "first_name": "Steve",
-            "last_name": "Jobs",
-            "password": "appleapple",
-            "email": "sjlasddajlskdjlnalsdj4215@apple.com",
-        }),
     ),
 )
 async def test_valid_cases(async_client, valid_data):

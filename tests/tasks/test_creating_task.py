@@ -1,40 +1,15 @@
 import json
-import random
-import string
 from datetime import datetime, timedelta, timezone
-from typing import Any
 
 import pytest
-from httpx import AsyncClient
 
 from app.db.models.tasks.handlers import get_task_by_id
 from app.schemas import GetUser
 from app.types import TaskStatus
-
+from tests.utils import get_iso_datetime_until_now, get_random_string
 
 pytestmark = pytest.mark.asyncio
-
-
-def get_iso_datetime_until_now(days: int = 0, hours: int = 0, minutes: int = 0, seconds: int = 0) -> str:
-    delta = timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds)
-    return (datetime.now(timezone.utc) + delta).isoformat()
-
-
-def get_random_string(length: int) -> str:
-    return ''.join(random.choices(string.ascii_letters + string.digits, k = length))
-
-
-async def _create_user_get_access_token_and_user(
-    async_client: AsyncClient, user_data: dict[str, Any]
-) -> tuple[str, GetUser]:
-    user_response = await async_client.post("/users", json=user_data)
-    creator: GetUser = GetUser.construct(**json.loads(user_response.json()))
-
-    auth_data = {"email": user_data["email"], "password": user_data["password"]}
-    auth_response = await async_client.post("/auth/token", data=auth_data)
-
-    access_token = auth_response.json()["access_token"]
-    return access_token, creator
+PASSWORD = "stevesteve"
 
 
 @pytest.fixture(scope="module")
@@ -42,14 +17,22 @@ async def access_token_and_creator(async_client) -> tuple[str, GetUser]:
     """
     Create creator, authorize it and get access token with username
     """
+    email = "sjvas@apple.com"
     user_data = {
         "first_name": "Steve",
         "last_name": "Jobs",
         "username": "appleapple",
-        "password": "stevesteve",
-        "email": "sjvas@apple.com",
+        "password": PASSWORD,
+        "email": email,
     }
-    return await _create_user_get_access_token_and_user(async_client, user_data)
+    user_response = await async_client.post("/users", json=user_data)
+    creator: GetUser = GetUser.construct(**json.loads(user_response.json()))
+
+    auth_data = {"email": email, "password": PASSWORD}
+    auth_response = await async_client.post("/auth/token", data=auth_data)
+
+    access_token = auth_response.json()["access_token"]
+    return access_token, creator
 
 
 @pytest.fixture(scope="module")
@@ -57,14 +40,22 @@ async def access_token_and_user(async_client) -> tuple[str, GetUser]:
     """
     Create user, authorize it and get access token with username
     """
+    email = "sjvasalsdk@apple.com"
     user_data = {
         "first_name": "Steve",
         "last_name": "Jobs",
         "username": "subscriber",
-        "password": "stevesteve",
-        "email": "sjvasalsdk@apple.com",
+        "password": PASSWORD,
+        "email": email,
     }
-    return await _create_user_get_access_token_and_user(async_client, user_data)
+    user_response = await async_client.post("/users", json=user_data)
+    creator: GetUser = GetUser.construct(**json.loads(user_response.json()))
+
+    auth_data = {"email": email, "password": PASSWORD}
+    auth_response = await async_client.post("/auth/token", data=auth_data)
+
+    access_token = auth_response.json()["access_token"]
+    return access_token, creator
 
 
 @pytest.mark.parametrize(
@@ -166,11 +157,11 @@ async def test_valid_cases_creating_task_by_creator(async_client, valid_data,
 @pytest.mark.parametrize(
     "invalid_due_date",
     (
-        get_iso_datetime_until_now(days=0, seconds=-1),
-        get_iso_datetime_until_now(days=-1),
-        get_iso_datetime_until_now(seconds=-1),
-        get_iso_datetime_until_now(days=-10),
-        get_iso_datetime_until_now(days=-10),
+            get_iso_datetime_until_now(days=0, seconds=-1),
+            get_iso_datetime_until_now(days=-1),
+            get_iso_datetime_until_now(seconds=-1),
+            get_iso_datetime_until_now(days=-10),
+            get_iso_datetime_until_now(days=-10),
         "asdasd",
         "2020-01-01",
         "01-01-2020",

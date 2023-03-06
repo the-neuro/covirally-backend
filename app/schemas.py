@@ -121,14 +121,18 @@ class _BaseTask(BaseModel):
         default=None, description="Date when task must be done"
     )
 
-    status: TaskStatus = Field(default=TaskStatus.IDEA)
+    status: TaskStatus | None = Field(default=TaskStatus.IDEA)
+
+    creator_id: str | None = Field(default=None, min_length=36, max_length=36)
+    suggested_by_id: str | None = Field(default=None, min_length=36, max_length=36)
+
+    assignee_id: str | None = Field(default=None, min_length=36, max_length=36)
 
 
 class CreateTask(_BaseTask):
     title: str = Field(min_length=2, max_length=128)
     creator_id: str = Field()
-    suggested_by_id: str | None = Field(default=None)
-    assignee_id: str | None = Field(default=None)
+    status: TaskStatus = Field(default=TaskStatus.IDEA)
 
     @validator("due_to_date")
     def check_date_in_future(  # pylint: disable=no-self-argument  # noqa
@@ -150,10 +154,48 @@ class CreateTask(_BaseTask):
         return values
 
 
+class UpdateTask(_BaseTask):
+    @validator("due_to_date")
+    def check_date_in_future(  # pylint: disable=no-self-argument  # noqa
+        cls, due_to_date: datetime | None
+    ) -> datetime | None:
+        if not due_to_date:
+            return None
+
+        if not due_to_date.replace(tzinfo=pytz.UTC) > datetime.now(timezone.utc):
+            raise ValueError("due_to_date must be date in future")
+        return due_to_date
+
+    @root_validator()
+    def set_assigned_at_if_neccessary(  # pylint: disable=no-self-argument
+        cls, values: dict[str, Any]
+    ) -> dict[str, Any]:
+        if (values.get("assignee_id")) is not None and values.get("assigned_at") is None:
+            values["assigned_at"] = datetime.now(tz=timezone.utc)
+        return values
+
+    @root_validator(pre=True)
+    def check_cant_patch_system_fields(  # pylint: disable=no-self-argument
+        cls, values: dict[str, Any]
+    ) -> dict[str, Any]:
+        system_fields = (
+            "id",
+            "created_at",
+            "assigned_at",
+            "creator_id",
+            "suggested_by_id",
+        )
+
+        system_fields_in_request = [field for field in system_fields if field in values]
+        err = f"Following fields can't be updated: {system_fields_in_request}"
+        assert not system_fields_in_request, err
+        return values
+
+
 class GetTaskNoForeigns(_BaseTask):
     """
-    Don't return joined DB fields like creator or suggested_by
-    Return only ids
+    Don't return joined DB fields like creator, assignee or suggested_by
+    Return only ids of those instead.
     """
 
     id: str  # noqa
@@ -161,10 +203,8 @@ class GetTaskNoForeigns(_BaseTask):
     title: str
 
     creator_id: str
-    suggested_by_id: str | None
-    assignee_id: str | None
-    assigned_at: datetime | None
 
+    assigned_at: datetime | None
     created_at: datetime
 
 
