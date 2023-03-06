@@ -13,7 +13,7 @@ from app.config import settings, AppEnvTypes
 from app.events import create_start_app_handler, create_stop_app_handler
 
 
-if settings.app_env not in (AppEnvTypes.DEV, AppEnvTypes.TEST):
+if settings.app_env == AppEnvTypes.PROD:
     sentry_sdk.init(
         dsn=settings.sentry_dsn,
         # Set traces_sample_rate to 1.0 to capture 100%

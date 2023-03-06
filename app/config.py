@@ -1,7 +1,12 @@
+import os
 from enum import Enum
 from typing import Any
 
+from dotenv import load_dotenv
 from pydantic import BaseSettings, PostgresDsn
+
+
+load_dotenv()
 
 
 class AppEnvTypes(Enum):
@@ -11,13 +16,13 @@ class AppEnvTypes(Enum):
 
 
 class Settings(BaseSettings):
-    app_env: AppEnvTypes = AppEnvTypes.PROD
+    app_env: AppEnvTypes = AppEnvTypes(os.getenv("APP_ENV", AppEnvTypes.PROD))
 
-    sentry_dsn: str
+    sentry_dsn: str | None = os.getenv("APP_ENV", default=None)
 
-    secret_jwt_token: str
+    secret_jwt_token: str = os.getenv("SECRET_JWT_TOKEN", "")
 
-    database_url: str | PostgresDsn
+    database_url: str | PostgresDsn = os.getenv("DATABASE_URL")
     max_connection_count: int = 10
     min_connection_count: int = 10
 
