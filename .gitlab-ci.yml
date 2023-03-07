@@ -30,5 +30,5 @@ deploy:
   before_script:
     - echo "DATABASE_URL=$DATABASE_URL" > .env
     - echo "APP_ENV=dev" > .env
-  script: cat .env && dokku-deploy
+  script: echo "DATABASE_URL=$DATABASE_URL" > .env && export DATABASE_URL=$DATABASE_URL && cat .env && dokku-deploy
   after_script: [dokku-unlock]

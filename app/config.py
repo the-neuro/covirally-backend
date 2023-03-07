@@ -3,8 +3,7 @@ from enum import Enum
 from typing import Any
 
 from dotenv import load_dotenv
-from pydantic import BaseSettings, PostgresDsn
-
+from pydantic import BaseSettings, PostgresDsn, validator
 
 load_dotenv()
 
@@ -30,6 +29,14 @@ class Settings(BaseSettings):
     min_connection_count: int = 10
 
     mailgun_api_key: str | None = os.getenv("MAILGUN_API_KEY")
+
+    @validator("app_env")
+    def set_to_default(  # pylint: disable=no-self-argument
+        cls, value: AppEnvTypes | None
+    ) -> AppEnvTypes:
+        if value is None:
+            value = AppEnvTypes.PROD
+        return value
 
     @property
     def db_options(self) -> dict[str, Any]:
