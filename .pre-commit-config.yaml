@@ -42,5 +42,5 @@ repos:
         language: script
         # Print the number of files as a sanity-check
         verbose: true
-#        pass_filenames: false
+        require_serial: true
         always_run: true

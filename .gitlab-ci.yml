@@ -9,6 +9,11 @@ variables:
 run_linters:
   image: python:3.10-slim-buster
   stage: linters
+  variables:
+    PRE_COMMIT_HOME: ${CI_PROJECT_DIR}/.cache/pre-commit
+  cache:
+    paths:
+      - ${PRE_COMMIT_HOME}
   before_script:
     - apt-get update && apt-get install make && apt-get install -y git
     - pip install -r requirements.dev.txt
