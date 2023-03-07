@@ -2,10 +2,7 @@ import os
 from enum import Enum
 from typing import Any
 
-from dotenv import load_dotenv
 from pydantic import BaseSettings, PostgresDsn, validator
-
-load_dotenv()
 
 
 class AppEnvTypes(Enum):
@@ -24,7 +21,7 @@ class Settings(BaseSettings):
 
     secret_jwt_token: str = os.getenv("SECRET_JWT_TOKEN", "")
 
-    database_url: str | PostgresDsn = os.getenv("DATABASE_URL")
+    database_url: str | PostgresDsn
     max_connection_count: int = 10
     min_connection_count: int = 10
 
