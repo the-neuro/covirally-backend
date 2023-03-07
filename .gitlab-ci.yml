@@ -25,7 +25,7 @@ deploy_dev:
   stage: deploy
   image: dokku/ci-docker-image
   only:
-    - dev-add-deployment  # todo: change to dev
+    - dev
   environment:
     name: dev
   variables:
