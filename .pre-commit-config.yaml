@@ -31,7 +31,6 @@ repos:
         entry: "./.ci/lint.sh check-mypy"
         # use require_serial so that script
         # is only called once per commit
-        require_serial: true
         language: script
         # Print the number of files as a sanity-check
         verbose: true
@@ -40,9 +39,8 @@ repos:
       - id: pylint
         name: pylint
         entry: "./.ci/lint.sh check-pylint"
-        require_serial: true
         language: script
         # Print the number of files as a sanity-check
         verbose: true
-        pass_filenames: false
+        require_serial: true
         always_run: true

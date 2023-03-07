@@ -20,20 +20,11 @@ downgrade:
 dev:
 	uvicorn main:app --host 0.0.0.0 --port 80 --reload
 
-format:
-	chmod +x ./.github/lint.sh
-	./.github/lint.sh format
-
 run_tests:
 	pytest -v -s --color=yes --log-level=INFO .
 
-mypy:
-	chmod +x ./.github/lint.sh
-	./.github/lint.sh check-mypy
+linters:
+	./.ci/lint.sh check
 
-lint:
-	chmod +x ./.github/lint.sh
-	./.github/lint.sh check-isort
-	./.github/lint.sh check-black
-	./.github/lint.sh check-flake8
-	./.github/lint.sh check-mypy
+format:
+	./.ci/lint.sh format

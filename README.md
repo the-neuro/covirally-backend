@@ -54,5 +54,5 @@ make run_tests
 ## Linter
 ```{shell}
 make format
-make lint
+make linters
 ```

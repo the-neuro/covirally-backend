@@ -8,7 +8,9 @@ from app.api.auth.utils import get_current_user
 from app.api.errors import (
     BadRequestCreatingTask,
     InvalidCreatorSuggesterIds,
-    BadRequestUpdatingTask, TaskNotFound, NotCreatorPermissionError,
+    BadRequestUpdatingTask,
+    TaskNotFound,
+    NotCreatorPermissionError,
 )
 from app.db.models.tasks.handlers import create_task, update_task, get_task_by_id
 from app.schemas import CreateTask, GetTaskNoForeigns, GetUser, UpdateTask

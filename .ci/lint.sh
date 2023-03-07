@@ -15,14 +15,12 @@
 
   check - check all *.py files by all intsalled linters according to setup.cfg/pyproject.toml
 
-  format - format all code files via isort and black
+  format - format all code files via black
 
   check-black - black linter
-  check-isort - import sorting check
   check-flake8 - flake8 check
   check-mypy - mypy typings check
 
-  diff-isort - show difference of import sorting
   diff-black - show difference of black linters
 '
 
@@ -40,12 +38,8 @@ function handle_exit {
 
 case ${COMMAND} in
     check-black)
-        black --config ./pyproject.toml --check ${FILEPATH} --exclude '^.*\b(migrations)\b.*$'
+        black --config ./pyproject.toml --check ${FILEPATH}
         handle_exit $? "Formatting error! Run \`$SCRIPT_NAME format\` to format the code"
-        ;;
-    check-isort)
-        isort --profile black --settings ./pyproject.toml ${FILEPATH} --check-only
-        handle_exit $? "Isort error! Run \`$SCRIPT_NAME format\` to format the code"
         ;;
     check-flake8)
         flake8 --color always --config ./setup.cfg ${FILEPATH}
@@ -56,32 +50,30 @@ case ${COMMAND} in
         handle_exit $? "Mypy error!"
         ;;
     check-pylint)
-        pylint app/
+        pylint --rcfile=.pylintrc app/
         handle_exit $? "Pylint error!"
         ;;
     check)
         set -e
-        $SCRIPT_NAME check-black
-        $SCRIPT_NAME check-isort
-        $SCRIPT_NAME check-flake8
-        $SCRIPT_NAME check-mypy
-        $SCRIPT_NAME check-pylint
+        echo -n -e "\033[1mBlack:\033[0m " && $SCRIPT_NAME check-black
+        echo -e "\033[1mChecking Flake8...\033[0m" && $SCRIPT_NAME check-flake8
+        echo -n -e "\033[1mMypy:\033[0m " && $SCRIPT_NAME check-mypy
+        echo -n -e "\033[1mPylint:\033[0m " && $SCRIPT_NAME check-pylint
         ;;
-    diff-isort)
-        isort --profile black --settings ./pyproject.toml ${FILEPATH} --diff
-        ;;
-    diff-black)
-        black --config ./pyproject.toml --diff ${FILEPATH}
-        ;;
+
     format)
-        isort --profile black --settings ./pyproject.toml ${FILEPATH}
         black --config ./pyproject.toml ${FILEPATH}
         ;;
+
     install)
         pip install -r ./requirements.dev.txt
         pre-commit install
         ;;
+
+    diff-black)
+        black --config ./pyproject.toml --diff ${FILEPATH}
+        ;;
     *)
-        echo $"Usage: $SCRIPT_NAME {check|check-black|check-isort|check-flake8|check-mypy|check-pylint|diff-isort|diff-black|format|install}"
+        echo $"Usage: $SCRIPT_NAME {check|check-black|check-flake8|check-mypy|check-pylint|format|diff-black|install}"
         exit 1
 esac

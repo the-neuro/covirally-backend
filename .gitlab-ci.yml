@@ -1,0 +1,35 @@
+stages:
+#  - linters
+  - deploy
+
+variables:
+  GIT_DEPTH: 0
+
+#run_linters:
+#  image: python:3.10-slim-buster
+#  stage: linters
+#  variables:
+#    PRE_COMMIT_HOME: ${CI_PROJECT_DIR}/.cache/pre-commit
+#  cache:
+#    paths:
+#      - ${PRE_COMMIT_HOME}
+#  before_script:
+#    - apt-get update && apt-get install make && apt-get install -y git
+#    - python3 -m venv venv && source venv/bin/activate
+#    - pip install --upgrade pip
+#    - pip install -r requirements.dev.txt
+#  script:
+#    - ./.ci/lint.sh check
+
+deploy_dev:
+  stage: deploy
+  image: dokku/ci-docker-image
+  only:
+    - dev
+  environment:
+    name: dev
+  variables:
+    GIT_REMOTE_URL: ssh://dokku@35.206.107.72:22/api-dev
+  script:
+    - dokku-deploy
+  after_script: [dokku-unlock]

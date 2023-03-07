@@ -33,7 +33,7 @@ class SendMessageParams:
 
 
 class MailgunClient:
-    def __init__(self, api_key: str, domain: str = "mail.covirally.com"):
+    def __init__(self, api_key: str | None, domain: str = "mail.covirally.com"):
         self.__api_key = api_key
         self._default_domain = domain
 
@@ -69,6 +69,7 @@ class MailgunClient:
             return None
 
         try:
+            assert self.__api_key, "MAILGUN_API_KEY must be provided to send messages"
             response = await http_client.post(
                 url, auth=("api", self.__api_key), data=data, timeout=5
             )
@@ -76,6 +77,9 @@ class MailgunClient:
             err = f"Timeout, can't send email to {to_addresses}: {exc}"
             logger.error(err)
             return err
+        except AssertionError as exc:
+            logger.error(str(exc))
+            return str(exc)
 
         json_response = response.json()
         # error codes might be found here https://documentation.mailgun.com/en/latest/api-sending.html#examples  # noqa

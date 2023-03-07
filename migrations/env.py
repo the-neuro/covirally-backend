@@ -1,5 +1,3 @@
-import pathlib
-import sys
 from logging.config import fileConfig
 
 from alembic import context
@@ -11,8 +9,6 @@ from app.db.base import Base, database
 from app.db.models.users.schemas import User
 from app.db.models.tasks.schemas import Task
 
-
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[3]))
 
 config = context.config
 

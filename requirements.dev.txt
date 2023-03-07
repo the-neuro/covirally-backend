@@ -1,3 +1,6 @@
+pre-commit==2.18.1
+pydantic==1.10.5
+
 # linters
 black==22.3.0
 mypy==0.931
