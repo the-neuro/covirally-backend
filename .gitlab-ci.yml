@@ -26,11 +26,12 @@ deploy:
     name: dev
   variables:
     GIT_REMOTE_URL: ssh://dokku@35.206.107.72:22/api-dev
-    APP_ENV: dev
+#    APP_ENV: dev
   script:
-    - echo "DATABASE_URL=$DATABASE_URL" > .env
-    - echo "APP_ENV=dev" > .env
+#    - echo "DATABASE_URL=$DATABASE_URL" > .env
+#    - echo "APP_ENV=dev" > .env
     - export DATABASE_URL=$DATABASE_URL
-    - cat .env
+    - export APP_ENV=dev
+#    - cat .env
     - dokku-deploy
   after_script: [dokku-unlock]
