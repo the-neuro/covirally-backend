@@ -10,8 +10,7 @@ logger = logging.getLogger(__name__)
 async def connect_to_db() -> None:
     logger.info("Connecting to Database")
 
-    # todo: uncomment
-    # await database.connect()
+    await database.connect()
 
     logger.info("Connection established")
 
