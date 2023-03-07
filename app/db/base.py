@@ -29,7 +29,6 @@ def get_db(db_url: str | PostgresDsn) -> Database:
         force_rollback = True
         db_url = get_test_db_url(db_url=db_url)
 
-    print(f"{db_url=}")
     return databases.Database(url=db_url, force_rollback=force_rollback, **db_options)
 
 

@@ -1,4 +1,3 @@
-import os
 from enum import Enum
 from typing import Any
 
@@ -12,20 +11,20 @@ class AppEnvTypes(Enum):
 
 
 class Settings(BaseSettings):
-    app_env: AppEnvTypes | None = os.getenv("APP_ENV", default=None)  # type: ignore
+    app_env: AppEnvTypes = AppEnvTypes.PROD
 
-    sentry_dsn: str | None = os.getenv("SENTRY_DSN", default=None)
+    sentry_dsn: str | None = None
 
     server_host: str = "0.0.0.0"
     frontend_host: str = "covirally.com"
 
-    secret_jwt_token: str = os.getenv("SECRET_JWT_TOKEN", "")
+    secret_jwt_token: str
 
     database_url: str | PostgresDsn
     max_connection_count: int = 10
     min_connection_count: int = 10
 
-    mailgun_api_key: str | None = os.getenv("MAILGUN_API_KEY")
+    mailgun_api_key: str | None = None
 
     @validator("app_env")
     def set_to_default(  # pylint: disable=no-self-argument
