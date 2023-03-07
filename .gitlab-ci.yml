@@ -27,5 +27,5 @@ deploy:
   variables:
     GIT_REMOTE_URL: ssh://dokku@35.206.107.72:22/api-dev
   script:
-    - DATABASE_URL=$DATABASE_URL dokku-deploy
+    - DATABASE_URL=$DATABASE_URL APP_ENV=dev dokku-deploy
   after_script: [dokku-unlock]
