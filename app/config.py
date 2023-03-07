@@ -16,7 +16,7 @@ class AppEnvTypes(Enum):
 
 
 class Settings(BaseSettings):
-    app_env: AppEnvTypes = AppEnvTypes(os.getenv("APP_ENV", AppEnvTypes.PROD))
+    app_env: AppEnvTypes | None = os.getenv("APP_ENV", default=None)  # type: ignore
 
     sentry_dsn: str | None = os.getenv("SENTRY_DSN", default=None)
 
