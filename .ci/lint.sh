@@ -55,10 +55,10 @@ case ${COMMAND} in
         ;;
     check)
         set -e
-        echo -n "Black: " && $SCRIPT_NAME check-black
-        echo "Checking Flake8..." && $SCRIPT_NAME check-flake8
-        echo -n "Mypy: " && $SCRIPT_NAME check-mypy
-        echo -n "Pylint: " && $SCRIPT_NAME check-pylint
+        echo -n -e "\033[1mBlack:\033[0m " && $SCRIPT_NAME check-black
+        echo -e "\033[1mChecking Flake8...\033[0m" && $SCRIPT_NAME check-flake8
+        echo -n -e "\033[1mMypy:\033[0m " && $SCRIPT_NAME check-mypy
+        echo -n -e "\033[1mPylint:\033[0m " && $SCRIPT_NAME check-pylint
         ;;
 
     format)

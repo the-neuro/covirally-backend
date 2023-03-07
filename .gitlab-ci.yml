@@ -16,6 +16,8 @@ run_linters:
       - ${PRE_COMMIT_HOME}
   before_script:
     - apt-get update && apt-get install make && apt-get install -y git
+    - python3 -m venv venv && source venv/bin/activate
+    - pip install --upgrade pip
     - pip install -r requirements.dev.txt
   script:
     - ./.ci/lint.sh check
