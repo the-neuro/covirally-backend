@@ -12,7 +12,8 @@ from app.db.models.users.schemas import User
 from app.db.models.tasks.schemas import Task
 
 
-sys.path.append(str(pathlib.Path(__file__).resolve().parents[3]))
+# curr_path = pathlib.Path(__file__).resolve()
+# sys.path.append(str(curr_path.parents[3]))
 
 config = context.config
 
