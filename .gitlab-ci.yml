@@ -17,10 +17,8 @@ run_linters:
   before_script:
     - apt-get update && apt-get install make && apt-get install -y git
     - pip install -r requirements.dev.txt
-    - pre-commit install-hooks
-    - pre-commit install
   script:
-    - pre-commit run -a
+    - ./.ci/lint.sh check
 
 deploy_dev:
   stage: deploy

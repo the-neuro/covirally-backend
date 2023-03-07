@@ -24,4 +24,7 @@ run_tests:
 	pytest -v -s --color=yes --log-level=INFO .
 
 linters:
-	pre-commit run -a
+	./.ci/lint.sh check
+
+format:
+	./.ci/lint.sh format
