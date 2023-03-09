@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, Query
+from fastapi.security import OAuth2PasswordRequestForm
 from starlette.responses import RedirectResponse
 
 from app.api.auth.refresh_password import (
@@ -13,13 +14,12 @@ from app.api.auth.utils import (
     authenticate_user,
     ACCESS_TOKEN_EXPIRE_MINUTES,
     create_access_token,
-    OAuth2PasswordEmailRequestForm,
 )
 from app.api.auth.verify_email import (
     get_user_from_verify_email_token,
     create_verify_token_and_send_to_email,
 )
-from app.api.errors import InvalidAuthorization, UserNotFound, EmailIsAlreadyVerified
+from app.api.errors import UserNotFound, EmailIsAlreadyVerified
 from app.api.auth.schemas import (
     GetBearerAccessTokenResponse,
     ResendVerifyEmail,
@@ -35,17 +35,17 @@ auth_router = APIRouter(tags=["Authentication"], prefix="/auth")
 
 @auth_router.post("/token", response_model=GetBearerAccessTokenResponse)
 async def login_for_access_token(
-    form_data: OAuth2PasswordEmailRequestForm = Depends(),
+    form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> GetBearerAccessTokenResponse:
     """
     This endpoint authorizes user
     :returns bearer for future requests.
     """
     user, err = await authenticate_user(
-        email=form_data.email, password=form_data.password
+        email=form_data.username, password=form_data.password
     )
     if err:
-        raise InvalidAuthorization(err)
+        raise err
 
     assert user is not None
     access_token = create_access_token(

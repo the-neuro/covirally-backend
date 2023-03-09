@@ -26,8 +26,6 @@ class _BaseUser(BaseModel):
     )
 
     receive_email_alerts: bool | None = Field(default=None)
-    email_is_verified: bool | None = Field(default=None)
-    email_verified_at: datetime | None = Field(default=None)
 
 
 class CreateUser(_BaseUser):
@@ -86,6 +84,9 @@ class GetUser(_BaseUser):
 
 class UpdateUser(_BaseUser):
     old_password: str | None = Field(default=None, min_length=1, max_length=256)
+
+    email_is_verified: bool | None = Field(default=None)
+    email_verified_at: datetime | None = Field(default=None)
 
     @validator("password")
     def hash_new_password(  # pylint: disable=no-self-argument

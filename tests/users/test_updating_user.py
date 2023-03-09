@@ -35,7 +35,7 @@ async def access_token_and_user(async_client) -> tuple[str, GetUser]:
     }
     user, _ = await create_user(CreateUser.construct(**user_data))
 
-    auth_data = {"email": email, "password": PASSWORD}
+    auth_data = {"username": email, "password": PASSWORD}
     auth_response = await async_client.post("/auth/token", data=auth_data)
 
     access_token = auth_response.json()["access_token"]

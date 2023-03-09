@@ -12,6 +12,7 @@ from app.api.errors import (
     InvalidAccessToken,
     InvalidAccessTokenPayload,
     AccessTokenExpired,
+    InvalidAuthorization,
 )
 from app.api.auth.password_utils import (
     passwords_are_equal,
@@ -80,16 +81,16 @@ class OAuth2PasswordEmailRequestForm:
 
 async def authenticate_user(
     email: str, password: str
-) -> tuple[GetUser | None, str | None]:
+) -> tuple[GetUser | None, Exception | None]:
     if not (user := await get_user_by_email(email)):
-        return None, f"User with {email=} doesn't exist."
+        return None, UserNotFound(email)
 
     # todo: don't do this check when user is registered via google, twitter, FB, etc
     if not user.email_is_verified:
-        return None, f"Email {email} is not verified."
+        return None, InvalidAuthorization(f"Email {email} is not verified.")
 
     if user.password and not passwords_are_equal(password, user.password):
-        return None, "Invlaid password"
+        return None, InvalidAuthorization("Invlaid password")
     return user, None
 
 

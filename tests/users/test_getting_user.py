@@ -25,7 +25,7 @@ async def test_success_get(async_client):
     }
     await create_user(CreateUser.construct(**user_data))
 
-    auth_data = {"email": email, "password": password}
+    auth_data = {"username": email, "password": password}
     auth_response = await async_client.post("/auth/token", data=auth_data)
 
     auth_response_json = auth_response.json()

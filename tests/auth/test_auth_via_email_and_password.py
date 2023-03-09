@@ -11,28 +11,28 @@ pytestmark = pytest.mark.asyncio
 
 
 @pytest.mark.parametrize(
-    "data",
+    "data, status_code",
     (
-        ({"username": "aasd"}),
-        ({"password": "asdasdas"}),
-        ({"some_field": "value"}),
-        ({"email": "asd"}),
-        ({"email": "ga@gmail.com"}),
-        ({"email": "gagmail.com", "password": "adasd"}),
-        ({"username": "dasd", "password": "asdasdas"}),
+        ({"username": "aasd"}, HTTPStatus.BAD_REQUEST),
+        ({"password": "asdasdas"}, HTTPStatus.BAD_REQUEST),
+        ({"some_field": "value"}, HTTPStatus.BAD_REQUEST),
+        ({"username": "asd"}, HTTPStatus.BAD_REQUEST),
+        ({"username": "ga@gmail.com"}, HTTPStatus.BAD_REQUEST),
+        ({"username": "gagmail.com", "password": "adasd"}, HTTPStatus.NOT_FOUND),
+        ({"username": "dasd", "password": "asdasdas"}, HTTPStatus.NOT_FOUND),
     ),
 )
-async def test_invalid_request_data(async_client, data):
+async def test_invalid_request_data(async_client, data, status_code):
     response = await async_client.post("/auth/token", data=data)
-    assert response.status_code == HTTPStatus.BAD_REQUEST, response.text
+    assert response.status_code == status_code, response.text
 
 
 async def test_cant_auth_user_not_in_db(async_client):
     some_random_email = "asd@gmail.com"
-    data = {"email": some_random_email, "password": "asdasd"}
+    data = {"username": some_random_email, "password": "asdasd"}
 
     response = await async_client.post("/auth/token", data=data)
-    assert response.status_code == HTTPStatus.UNAUTHORIZED, response.text
+    assert response.status_code == HTTPStatus.NOT_FOUND, response.text
 
 
 async def test_cant_auth_user_with_wrong_password(async_client):
@@ -48,7 +48,7 @@ async def test_cant_auth_user_with_wrong_password(async_client):
     await async_client.post("/users", json=user_data)
 
     # trying to auth with wrong password
-    auth_data = {"email": email, "password": "randomrandom"}
+    auth_data = {"username": email, "password": "randomrandom"}
     response = await async_client.post("/auth/token", data=auth_data)
     assert response.status_code == HTTPStatus.UNAUTHORIZED, response.text
 
@@ -65,7 +65,7 @@ async def test_cant_auth_with_not_verified_email(async_client):
     }
     await create_user(CreateUser.construct(**user_data))
 
-    auth_data = {"email": email, "password": password}
+    auth_data = {"username": email, "password": password}
     response = await async_client.post("/auth/token", data=auth_data)
     assert response.status_code == HTTPStatus.UNAUTHORIZED, response.text
 
@@ -83,7 +83,7 @@ async def test_success_auth(async_client):
     }
     await create_user(CreateUser.construct(**user_data))
 
-    auth_data = {"email": email, "password": password}
+    auth_data = {"username": email, "password": password}
     response = await async_client.post("/auth/token", data=auth_data)
     assert response.status_code == HTTPStatus.OK, response.text
 
