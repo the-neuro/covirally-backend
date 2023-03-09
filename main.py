@@ -44,7 +44,7 @@ def get_application() -> FastAPI:
     #     "https://frontend-three-red.vercel.app/",  # dev frontend
     #     "http://localhost:5173/",
     # ]
-    app.add_middleware(
+    application.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
         allow_credentials=True,
