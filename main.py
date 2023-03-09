@@ -4,6 +4,7 @@ import sentry_sdk
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError, HTTPException
+from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -26,7 +27,17 @@ if settings.app_env == AppEnvTypes.PROD and settings.sentry_dsn:
 
 
 def get_application() -> FastAPI:
-    application = FastAPI(version="1.0.0")
+    middleware = [
+        Middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+    ]
+
+    application = FastAPI(version="1.0.0", middleware=middleware)
 
     application.add_event_handler(
         "startup",
@@ -44,13 +55,6 @@ def get_application() -> FastAPI:
     #     "https://frontend-three-red.vercel.app/",  # dev frontend
     #     "http://localhost:5173/",
     # ]
-    application.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
 
     return application
 
