@@ -108,7 +108,6 @@ async def change_password_via_token(
 @auth_router.get(
     "/check-email",
     response_model=UserExistsResponse,
-    status_code=HTTPStatus.PERMANENT_REDIRECT,
 )
 async def check_if_user_exists(
     email: str = Query(
