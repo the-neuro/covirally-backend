@@ -28,3 +28,7 @@ class RefreshPassword(BaseModel):
     @validator("password")
     def hash_password(cls, password: str) -> str:  # pylint: disable=no-self-argument
         return get_password_hash(password)
+
+
+class UserExistsResponse(BaseModel):
+    user_exists: bool

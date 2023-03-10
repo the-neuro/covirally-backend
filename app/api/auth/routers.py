@@ -25,6 +25,7 @@ from app.api.auth.schemas import (
     ResendVerifyEmail,
     RefreshPasswordForEmail,
     RefreshPassword,
+    UserExistsResponse,
 )
 from app.config import settings
 from app.db.models.users.handlers import update_user, get_user_by_email
@@ -104,15 +105,15 @@ async def change_password_via_token(
     await update_user(user_id=user.id, values={"password": params.password})
 
 
-@auth_router.get("/check-email", status_code=HTTPStatus.PERMANENT_REDIRECT)
+@auth_router.get(
+    "/check-email",
+    response_model=UserExistsResponse,
+    status_code=HTTPStatus.PERMANENT_REDIRECT,
+)
 async def check_if_user_exists(
     email: str = Query(
         ..., min_length=3, max_length=35, regex=EMAIL_REGEX, example="email@gmail.com"
     ),
-) -> RedirectResponse:
-    # todo: change these redirect urls
-    if await get_user_by_email(email):
-        redirect_url = f"https://{settings.frontend_host}/auth"  # authorization
-    else:
-        redirect_url = f"https://{settings.frontend_host}/registration"  # registration
-    return RedirectResponse(url=redirect_url, status_code=HTTPStatus.PERMANENT_REDIRECT)
+) -> UserExistsResponse:
+    user_exists = bool(await get_user_by_email(email))
+    return UserExistsResponse(user_exists=user_exists)
