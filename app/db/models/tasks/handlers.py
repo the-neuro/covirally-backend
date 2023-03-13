@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Any
 
@@ -8,8 +9,7 @@ from sqlalchemy import insert, literal_column, select, update
 
 from app.db.base import database
 from app.db.models.tasks.schemas import Task
-from app.schemas import CreateTask, GetTaskNoForeigns
-
+from app.schemas import CreateTask, GetTaskNoForeigns, TasksFeed
 
 logger = logging.getLogger()
 
@@ -81,3 +81,32 @@ async def update_task(task_id: str, values: dict[str, Any]) -> str | None:
     else:
         await transaction.commit()
         return None
+
+
+async def get_feed_tasks(limit: int = 20, offset: int = 0) -> TasksFeed:
+    query = """
+    SELECT
+        json_agg(
+            json_build_object(
+                'id', tasks.id,
+                'title', tasks.title,
+                'description', tasks.description,
+                'created_at', tasks.created_at,
+                'status', tasks.status,
+                'creator', json_build_object(
+                    'id', creator.id,
+                    'username', creator.username,
+                    'avatar_url', creator.avatar_url
+                )
+            ) ORDER BY tasks.created_at DESC
+        ) AS tasks
+    FROM tasks
+    LEFT JOIN users creator ON tasks.creator_id = creator.id
+    LIMIT :limit
+    OFFSET :offset;
+    """
+    fetched_data = await database.fetch_one(
+        query, values={"limit": limit, "offset": offset}
+    )
+    res: TasksFeed = TasksFeed.parse_obj({"tasks": json.loads(fetched_data["tasks"])})
+    return res

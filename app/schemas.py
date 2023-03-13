@@ -235,3 +235,22 @@ class GetTask(GetTaskNoForeigns):
     creator: GetUser
     suggested_by: GetUser | None
     assignee: GetUser | None
+
+
+class UserFeed(BaseModel):
+    id: str  # noqa
+    username: str
+    avatar_url: str | None
+
+
+class TaskFeed(BaseModel):
+    id: str  # noqa
+    title: str
+    description: str | None = None
+    created_at: str
+    status: TaskStatus
+    creator: UserFeed
+
+
+class TasksFeed(BaseModel):
+    tasks: list[TaskFeed]
