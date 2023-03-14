@@ -235,3 +235,12 @@ class GetTask(GetTaskNoForeigns):
     creator: GetUser
     suggested_by: GetUser | None
     assignee: GetUser | None
+
+
+class HashTag(BaseModel):
+    id: str  # noqa
+    hashtag: str
+
+
+class TaskHashtags(BaseModel):
+    hashtags: list[HashTag]
