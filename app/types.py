@@ -8,3 +8,11 @@ class TaskStatus(str, Enum):
     IDEA = "IDEA"
     IN_PROGRESS = "IN_PROGRESS"
     DONE = "DONE"
+
+
+class Grades(str, Enum):
+    SUBSCRIBED = "subscribed"
+    PAYED_POST = "payed_post"
+    PAYED_SUBSCRIBED = "payed_subscribed"
+    TEAM_CREATOR = "team_creator"
+    IS_CREATOR = "is_creator"

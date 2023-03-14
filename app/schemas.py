@@ -5,7 +5,7 @@ from typing import Any
 from pydantic import BaseModel, validator, Field, root_validator
 
 from app.api.auth.password_utils import get_password_hash
-from app.types import TaskStatus, EMAIL_REGEX
+from app.types import TaskStatus, EMAIL_REGEX, Grades
 
 URL_REGEX = r"(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})"  # noqa
 
@@ -380,3 +380,16 @@ class TaskFeed(BaseModel):
     created_at: str
     status: TaskStatus
     creator: UserFeed
+
+
+class TasksFeed(BaseModel):
+    tasks: list[TaskFeed]
+
+
+class Grade(BaseModel):
+    id: str  # noqa
+    user_id: str
+    creator_id: str
+    grade_variant: Grades | None = Field(default=Grades.SUBSCRIBED)
+    task: datetime | None
+    degrades_at: datetime | None
