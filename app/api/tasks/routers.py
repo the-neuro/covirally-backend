@@ -1,3 +1,4 @@
+import asyncio
 from http import HTTPStatus
 from typing import Any
 
@@ -12,6 +13,7 @@ from app.api.errors import (
     TaskNotFound,
     NotCreatorPermissionError,
 )
+from app.db.models.hashtags.utils import extract_and_insert_hashtags
 from app.db.models.tasks.handlers import create_task, update_task, get_task_by_id
 from app.schemas import CreateTask, GetTaskNoForeigns, GetUser, UpdateTask
 
@@ -38,6 +40,11 @@ async def create_new_task(
         raise BadRequestCreatingTask(err)
     assert task is not None
 
+    if task.description:
+        asyncio.create_task(
+            extract_and_insert_hashtags(task.description, task_id=task.id)
+        )
+
     return task
 
 
@@ -63,6 +70,9 @@ async def update_task_info(
 
     if (err := await update_task(task_id=task_id, values=update_data)) is not None:
         raise BadRequestUpdatingTask(exc=err)
+
+    if (description := update_data["description"]) is not None:
+        asyncio.create_task(extract_and_insert_hashtags(description, task_id=task_id))
 
     # due date to string, json error otherwise
     if "due_to_date" in update_data:

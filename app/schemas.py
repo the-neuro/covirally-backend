@@ -237,6 +237,15 @@ class GetTask(GetTaskNoForeigns):
     assignee: GetUser | None
 
 
+class HashTag(BaseModel):
+    id: str  # noqa
+    hashtag: str
+
+
+class TaskHashtags(BaseModel):
+    hashtags: list[HashTag]
+
+
 class UserFeed(BaseModel):
     id: str  # noqa
     username: str

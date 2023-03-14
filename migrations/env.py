@@ -8,6 +8,7 @@ from app.db.base import Base, database
 
 from app.db.models.users.schemas import User
 from app.db.models.tasks.schemas import Task
+from app.db.models.hashtags.schemas import Hashtag
 
 
 config = context.config
