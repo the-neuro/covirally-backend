@@ -85,7 +85,11 @@ async def resend_verification_email(params: ResendVerifyEmail) -> None:
     if user.email_is_verified:
         raise EmailIsAlreadyVerified(user.email)
 
-    create_verify_token_and_send_to_email(email=user.email)
+    create_verify_token_and_send_to_email(
+        email=user.email,
+        avatar_url=user.avatar_url,
+        username=user.username,
+    )
 
 
 @auth_router.post("/refresh-password/")
@@ -93,7 +97,9 @@ async def send_refresh_password_email(params: RefreshPasswordForEmail) -> None:
     if not (user := await get_user_by_email(email=params.email)):
         raise UserNotFound(params.email)
 
-    create_refresh_password_token_and_send(email=user.email)
+    create_refresh_password_token_and_send(
+        email=user.email, avatar_url=user.avatar_url, username=user.username
+    )
 
 
 @auth_router.post("/refresh-password/{token}")

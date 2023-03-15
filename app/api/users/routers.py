@@ -35,8 +35,11 @@ async def create_new_user(user_params: CreateUser) -> GetUser:
     assert user is not None
 
     if not user.email_is_verified:
-        create_verify_token_and_send_to_email(email=user.email)
-
+        create_verify_token_and_send_to_email(
+            email=user.email,
+            avatar_url=user.avatar_url,
+            username=user.username,
+        )
     return user
 
 
