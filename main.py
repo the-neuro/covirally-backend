@@ -10,6 +10,7 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse
 
 from app.api.auth.routers import auth_router
+from app.api.feed.routers import feed_router
 from app.api.tasks.routers import task_router
 from app.api.users.routers import users_router
 from app.config import settings, AppEnvTypes
@@ -50,6 +51,7 @@ def get_application() -> FastAPI:
     application.include_router(users_router)
     application.include_router(auth_router)
     application.include_router(task_router)
+    application.include_router(feed_router)
 
     # origins = [
     #     "https://frontend-three-red.vercel.app/",  # dev frontend

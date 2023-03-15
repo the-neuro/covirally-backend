@@ -29,6 +29,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token", auto_error=False)
 
 
 class OAuth2PasswordEmailRequestForm:
@@ -106,7 +107,10 @@ def create_access_token(
     return token
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> GetUser:
+async def _get_curr_user(token: str | None) -> GetUser | None:
+    if not token:
+        return None
+
     try:
         payload: DataToEncodeInJWTToken = jwt.decode(
             token, settings.secret_jwt_token, algorithms=[ALGORITHM]
@@ -124,4 +128,16 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> GetUser:
     if user.password is not None and password_needs_rehash(user.password):
         new_password = get_password_hash(user.password)
         await update_user(user_id=user.id, values={"password": new_password})
+    return user
+
+
+async def get_curr_user_or_none(
+    token: str | None = Depends(optional_oauth2_scheme),
+) -> GetUser | None:
+    return await _get_curr_user(token)
+
+
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> GetUser:
+    user = await _get_curr_user(token)
+    assert user is not None
     return user

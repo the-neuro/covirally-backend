@@ -217,8 +217,8 @@ async def test_update_invalid_due_to_date(
     (
         "A",  # wrong value
         "asdasd",  # wrong value
-        "IDEA",  # wrong value
-        "IN_PROGRESS",  # wrong value,
+        "idea",  # wrong value
+        "in_progress",  # wrong value,
         2020,  # wrong value
     ),
 )
