@@ -33,8 +33,15 @@ def create_verify_email_token(email: str) -> str:
     return token
 
 
-def create_verify_token_and_send_to_email(email: str) -> None:
+def create_verify_token_and_send_to_email(
+    email: str, avatar_url: str | None, username: str | None
+) -> None:
     verify_token = create_verify_email_token(email=email)
     asyncio.create_task(
-        mailgun.send_email_confirmation(verfiy_email_token=verify_token, to_address=email)
+        mailgun.send_email_confirmation(
+            verfiy_email_token=verify_token,
+            to_address=email,
+            avatar_url=avatar_url,
+            username=username,
+        )
     )

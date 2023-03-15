@@ -1,5 +1,7 @@
+import json
 import logging
 from dataclasses import dataclass
+from typing import TypedDict
 
 from httpx import TimeoutException
 
@@ -8,6 +10,9 @@ from app.http_cli import http_client
 
 
 logger = logging.getLogger(__name__)
+
+
+DEFAULT_AVATAR_URL = "https://uploads-ssl.webflow.com/63b039a8224d1f6125175085/63b41a89196e1857c6be6b25_logo.svg"  # noqa
 
 
 @dataclass
@@ -19,17 +24,36 @@ class SendMessageParams:
 
     from_covirally_user: str
     to_addresses: list[str] | str
+    subject: str | None = None
+
     text: str | None = None
     html: str | None = None
-    subject: str | None = None
+
+    template: str | None = None
+    template_variables: str | None = None
+
     domain: str | None = None
 
     def __post_init__(self) -> None:
-        if self.html and self.text:
-            raise ValueError("Only one of html or text parameters must be set.")
+        if all((self.html, self.text, self.template)):
+            err = "Only one of 'html', 'text' or 'template' parameters must be set."
+            raise ValueError(err)
 
-        if not self.text and not self.html:
-            raise ValueError("Text or html parameter must be set")
+        if not any((self.text, self.html, self.template)):
+            raise ValueError("'Text', 'html' or 'template' parameter must be set")
+
+
+class EmailConfirmationParams(TypedDict):
+    avatar: str | None
+    username: str | None
+    email: str
+    confirm_link: str
+
+
+class ForgotPasswordParams(TypedDict):
+    avatar: str | None
+    username: str | None
+    reset_link: str
 
 
 class MailgunClient:
@@ -61,6 +85,8 @@ class MailgunClient:
             "subject": params.subject,
             "text": params.text,
             "html": params.html,
+            "template": params.template,
+            "h:X-Mailgun-Variables": params.template_variables,
         }
 
         url = self._get_api_url(params.domain)
@@ -107,41 +133,57 @@ class MailgunClient:
         return error_message
 
     async def send_email_confirmation(
-        self, verfiy_email_token: str, to_address: str
+        self,
+        *,
+        verfiy_email_token: str,
+        to_address: str,
+        avatar_url: str | None = None,
+        username: str | None = None,
     ) -> str | None:
-        url = f"http://{settings.server_host}/auth/verifyemail/{verfiy_email_token}"
-
-        # todo: change body (take from mailgun templates)
-        body = f"""
-    <html>
-    Please follow <a href='{url}'>this link </a> to confirm your email on covirally.com
-    </html>
-        """
+        confirmation_url = (
+            f"https://{settings.server_host}/auth/verifyemail/{verfiy_email_token}"
+        )
 
         params = SendMessageParams(
             from_covirally_user="confirmemail",
             to_addresses=to_address,
-            html=body,
+            template="verify-email",
+            subject="Email confirmation",
+            template_variables=json.dumps(
+                EmailConfirmationParams(
+                    avatar=avatar_url or DEFAULT_AVATAR_URL,
+                    username=username,
+                    email=to_address,
+                    confirm_link=confirmation_url,
+                )
+            ),
         )
         return await self.send_message(params)
 
     async def send_refresh_password(
-        self, refresh_password_token: str, to_address: str
+        self,
+        *,
+        refresh_password_token: str,
+        to_address: str,
+        avatar_url: str | None,
+        username: str | None,
     ) -> str | None:
-        change_password_frontend_url = (
-            f"https://covirally.com/refresh-password/{refresh_password_token}"
+        change_password_url = (
+            f"https://{settings.frontend_host}/refresh-password/{refresh_password_token}"
         )
 
-        # todo: change body (take from mailgun templates)
-        body = f"""
-    <html>
-    Go <a href='{change_password_frontend_url}'>here </a> to update your password
-    </html>
-        """
         params = SendMessageParams(
             from_covirally_user="no-reply",
             to_addresses=to_address,
-            html=body,
+            subject="Refresh password",
+            template="forgot-password",
+            template_variables=json.dumps(
+                ForgotPasswordParams(
+                    avatar=avatar_url or DEFAULT_AVATAR_URL,
+                    username=username,
+                    reset_link=change_password_url,
+                )
+            ),
         )
         return await self.send_message(params)
 

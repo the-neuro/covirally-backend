@@ -31,11 +31,16 @@ def create_refresh_password_token(
     return token
 
 
-def create_refresh_password_token_and_send(email: str) -> None:
+def create_refresh_password_token_and_send(
+    email: str, avatar_url: str | None, username: str | None
+) -> None:
     refresh_password_token = create_refresh_password_token(email=email)
     asyncio.create_task(
         mailgun.send_refresh_password(
-            refresh_password_token=refresh_password_token, to_address=email
+            refresh_password_token=refresh_password_token,
+            to_address=email,
+            avatar_url=avatar_url,
+            username=username,
         )
     )
 
