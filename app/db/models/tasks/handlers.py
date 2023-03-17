@@ -1,11 +1,12 @@
 import json
 import logging
+from datetime import datetime, timezone
 from typing import Any
 
 from asyncpg import NotNullViolationError, UniqueViolationError, ForeignKeyViolationError
 from databases.backends.postgres import Record
 from pydantic import ValidationError
-from sqlalchemy import insert, literal_column, select, update
+from sqlalchemy import insert, literal_column, select, update, delete
 
 from app.db.base import database
 from app.db.models.tasks.schemas import Task, TaskComment
@@ -128,6 +129,53 @@ async def comment_exists_in_db(comment_id: str) -> bool:
     query = select([TaskComment.id]).where(TaskComment.id == comment_id).limit(1)
     res: Record = await database.fetch_one(query)
     return bool(res)
+
+
+async def get_task_comment(comment_id: str) -> GetTaskComment | None:
+    query = select(TaskComment).where(TaskComment.id == comment_id).limit(1)
+
+    if not (_res := await database.fetch_one(query)):
+        return None
+
+    try:
+        parsed_comment: GetTaskComment = GetTaskComment.parse_obj(_res)
+    except ValidationError as exc:
+        logger.error(f"Can't parse task comment with {comment_id=}, {_res}: {exc}")
+        return None
+    else:
+        return parsed_comment
+
+
+async def update_task_comment(comment_id: str, values: dict[str, Any]) -> str | None:
+    """
+    Returns optional error
+    """
+    if not values:
+        return None
+
+    values = values.copy()
+    values["edited"] = True
+    values["edited_at"] = datetime.now(timezone.utc)
+
+    query = update(TaskComment).where(TaskComment.id == comment_id).values(values)
+    transaction = await database.transaction()
+    try:
+        await database.execute(query)
+    except (NotNullViolationError, UniqueViolationError) as exc:
+        await transaction.rollback()
+        return str(exc)
+    except ForeignKeyViolationError:
+        # no row with such foreign id
+        await transaction.rollback()
+        return "No row with such foreign key id"
+    else:
+        await transaction.commit()
+        return None
+
+
+async def delete_task_comment(comment_id: str) -> None:
+    query = delete(TaskComment).where(TaskComment.id == comment_id)
+    await database.execute(query)
 
 
 async def get_feed_tasks(limit: int = 20, offset: int = 0) -> TasksFeed:

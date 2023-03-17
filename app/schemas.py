@@ -271,6 +271,32 @@ class GetTaskComment(BaseModel):
     created_at: datetime
 
 
+class UpdateComment(BaseModel):
+    content: str | None = Field(default=None, min_length=1, max_length=2000)
+
+    @validator("content", pre=True)
+    def strip_content(cls, value: str) -> str:  # pylint: disable=no-self-argument
+        return value.strip()
+
+    @root_validator(pre=True)
+    def check_cant_patch_system_fields(  # pylint: disable=no-self-argument
+        cls, values: dict[str, Any]
+    ) -> dict[str, Any]:
+        system_fields = (
+            "id",
+            "task_id",
+            "user_id",
+            "edited",
+            "edited_at",
+            "created_at",
+        )
+
+        system_fields_in_request = [field for field in system_fields if field in values]
+        err = f"Following fields can't be updated: {system_fields_in_request}"
+        assert not system_fields_in_request, err
+        return values
+
+
 class UserFeed(BaseModel):
     id: str  # noqa
     username: str
