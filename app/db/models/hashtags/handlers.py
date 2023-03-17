@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy import delete, select
 
 from sqlalchemy.dialects.postgresql import insert
@@ -5,6 +7,9 @@ from sqlalchemy.dialects.postgresql import insert
 from app.db.base import database
 from app.db.models.hashtags.schemas import Hashtag
 from app.schemas import TaskHashtags
+
+
+logger = logging.getLogger()
 
 
 async def add_hashtags(tags: list[str], task_id: str) -> None:

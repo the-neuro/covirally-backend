@@ -71,6 +71,12 @@ class BadRequestCreatingTask(HTTPException):
         super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
 
 
+class BadRequestAddingCommentToTask(HTTPException):
+    def __init__(self, exc: str) -> None:
+        msg = f"Can't add comment to task: {exc}"
+        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
+
+
 class InvalidCreatorSuggesterIds(HTTPException):
     def __init__(self, exc: str) -> None:
         msg = f"Can't create task: {exc}"

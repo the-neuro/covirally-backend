@@ -1,5 +1,5 @@
-import json
 from datetime import datetime, timedelta, timezone
+from unittest.mock import patch, MagicMock
 
 import pytest
 
@@ -70,17 +70,18 @@ async def access_token_and_user(async_client) -> tuple[str, GetUser]:
         }),
         ({
             "title": "Hello2",
-            "description": "Something2",
             "due_to_date": get_iso_datetime_until_now(days=10),
             "status": TaskStatus.IN_PROGRESS,
         }),
     ),
 )
+@patch("app.api.tasks.routers.extract_and_insert_hashtags", return_value=None)
 async def test_valid_cases_create_task_by_user(
+    extract_and_insert_hashtags: MagicMock,
     async_client,
     valid_data,
-        access_token_and_creator,
-        access_token_and_user
+    access_token_and_creator,
+    access_token_and_user
 ):
     _, creator = access_token_and_creator
     access_token, user = access_token_and_user
@@ -106,9 +107,12 @@ async def test_valid_cases_create_task_by_user(
     assert task_in_db is not None, f"Task {task_id} is not in db after POST /tasks"
 
     assert task_in_db.title == valid_data["title"]
-    assert task_in_db.description == valid_data["description"]
+    assert task_in_db.description == valid_data.get("description")
     assert task_in_db.creator_id == valid_data["creator_id"]
     assert task_in_db.suggested_by_id == valid_data["suggested_by_id"]
+
+    if valid_data.get("description"):
+        extract_and_insert_hashtags.assert_called_once()
 
 
 @pytest.mark.parametrize(
@@ -121,14 +125,17 @@ async def test_valid_cases_create_task_by_user(
         }),
         ({
             "title": "Hello2",
-            "description": "Something2",
             "due_to_date": get_iso_datetime_until_now(days=10),
             "status": TaskStatus.IN_PROGRESS,
         }),
     ),
 )
-async def test_valid_cases_creating_task_by_creator(async_client, valid_data,
-                                                    access_token_and_creator):
+@patch("app.api.tasks.routers.extract_and_insert_hashtags", return_value=None)
+async def test_valid_cases_creating_task_by_creator(
+    extract_and_insert_hashtags: MagicMock,
+    async_client, valid_data,
+    access_token_and_creator
+):
     access_token, creator = access_token_and_creator
     auth_header = f"Bearer {access_token}"
     valid_data['creator_id'] = creator.id
@@ -151,9 +158,12 @@ async def test_valid_cases_creating_task_by_creator(async_client, valid_data,
     assert task_in_db is not None, f"Task {task_id} is not in db after POST /tasks"
 
     assert task_in_db.title == valid_data["title"]
-    assert task_in_db.description == valid_data["description"]
+    assert task_in_db.description == valid_data.get("description")
     assert task_in_db.creator_id == valid_data["creator_id"]
     assert task_in_db.suggested_by_id == valid_data.get("suggested_by_id")
+
+    if valid_data.get("description"):
+        extract_and_insert_hashtags.assert_called_once()
 
 
 @pytest.mark.parametrize(
@@ -221,8 +231,9 @@ async def test_cant_create_task_with_invalid_title(
         }),
     ),
 )
+@patch("app.api.tasks.routers.extract_and_insert_hashtags", return_value=None)
 async def test_assigned_at_is_set(
-        async_client, valid_data, access_token_and_creator, access_token_and_user):
+       extract_and_insert_hashtags: MagicMock, async_client, valid_data, access_token_and_creator, access_token_and_user):
     access_token, creator = access_token_and_creator
     _, assignee = access_token_and_user
     auth_header = f"Bearer {access_token}"
@@ -239,7 +250,7 @@ async def test_assigned_at_is_set(
     assert task_in_db is not None, f"Task {task_id} is not in db after POST /tasks"
 
     assert task_in_db.title == valid_data["title"]
-    assert task_in_db.description == valid_data["description"]
+    assert task_in_db.description == valid_data.get("description")
     assert task_in_db.creator_id == valid_data["creator_id"]
     assert task_in_db.assignee_id == valid_data["assignee_id"]
 
@@ -250,3 +261,6 @@ async def test_assigned_at_is_set(
     two_seconds_after = datetime.now(timezone.utc) + timedelta(seconds=2)
     assert two_seconds_before < task_in_db.assigned_at
     assert task_in_db.assigned_at < two_seconds_after
+
+    if valid_data.get("description"):
+        extract_and_insert_hashtags.assert_called_once()

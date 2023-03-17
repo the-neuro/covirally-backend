@@ -8,8 +8,15 @@ from pydantic import ValidationError
 from sqlalchemy import insert, literal_column, select, update
 
 from app.db.base import database
-from app.db.models.tasks.schemas import Task
-from app.schemas import CreateTask, GetTaskNoForeigns, TasksFeed
+from app.db.models.tasks.schemas import Task, TaskComment
+from app.schemas import (
+    CreateTask,
+    GetTaskNoForeigns,
+    CreateTaskComment,
+    GetTaskComment,
+    TasksFeed,
+)
+
 
 logger = logging.getLogger()
 
@@ -81,6 +88,46 @@ async def update_task(task_id: str, values: dict[str, Any]) -> str | None:
     else:
         await transaction.commit()
         return None
+
+
+async def add_comment_to_task(
+    create_comment_params: CreateTaskComment,
+) -> tuple[GetTaskComment | None, str | None]:
+    task_id = create_comment_params.task_id
+    create_params = create_comment_params.dict()
+    create_params["edited"] = False
+
+    query = (
+        insert(TaskComment)
+        .values(create_params)
+        .returning(literal_column("id"), literal_column("created_at"))
+    )
+    transaction = await database.transaction()
+    try:
+        row: Record = await database.fetch_one(query)
+
+        comment_id, created_at = row._mapping.values()
+        task: GetTaskComment = GetTaskComment.construct(
+            **dict(id=comment_id, created_at=created_at, **create_params)
+        )
+
+    except (NotNullViolationError, UniqueViolationError) as exc:
+        logger.error(f"Can't add comment to {task_id=}: {exc}")
+        await transaction.rollback()
+        return None, str(exc)
+    except ValidationError as exc:
+        logger.error(f"Validation error after adding comment to {task_id=}: {exc}")
+        await transaction.rollback()
+        return None, str(exc)
+    else:
+        await transaction.commit()
+        return task, None
+
+
+async def comment_exists_in_db(comment_id: str) -> bool:
+    query = select([TaskComment.id]).where(TaskComment.id == comment_id).limit(1)
+    res: Record = await database.fetch_one(query)
+    return bool(res)
 
 
 async def get_feed_tasks(limit: int = 20, offset: int = 0) -> TasksFeed:
