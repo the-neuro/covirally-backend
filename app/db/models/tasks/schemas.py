@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Enum, DateTime, func, text, ForeignKey
+from sqlalchemy import Column, String, Enum, DateTime, func, text, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base
@@ -40,3 +40,24 @@ class Task(Base):
         "User", foreign_keys=[suggested_by_id], backref="suggested_tasks"
     )
     assignee = relationship("User", foreign_keys=[assignee_id], backref="asigned_tasks")
+
+
+class TaskComment(Base):
+    __tablename__ = "tasks_comments"
+
+    id = Column(  # noqa
+        String, primary_key=True, server_default=text("gen_random_uuid()::varchar")
+    )
+
+    content = Column(String(length=2000), nullable=False)
+
+    task_id = Column(String, ForeignKey("tasks.id"), nullable=False)
+    task = relationship("Task", foreign_keys=[task_id], backref="comments")
+
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    user = relationship("User", foreign_keys=[user_id], backref="task_comments")
+
+    edited = Column(Boolean, server_default="0", default=False, nullable=False)
+    edited_at = Column(DateTime(timezone=True), nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

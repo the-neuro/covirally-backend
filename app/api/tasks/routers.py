@@ -12,10 +12,23 @@ from app.api.errors import (
     BadRequestUpdatingTask,
     TaskNotFound,
     NotCreatorPermissionError,
+    BadRequestAddingCommentToTask,
 )
 from app.db.models.hashtags.utils import extract_and_insert_hashtags
-from app.db.models.tasks.handlers import create_task, update_task, get_task_by_id
-from app.schemas import CreateTask, GetTaskNoForeigns, GetUser, UpdateTask
+from app.db.models.tasks.handlers import (
+    create_task,
+    update_task,
+    get_task_by_id,
+    add_comment_to_task,
+)
+from app.schemas import (
+    CreateTask,
+    GetTaskNoForeigns,
+    GetUser,
+    UpdateTask,
+    GetTaskComment,
+    CreateTaskComment,
+)
 
 task_router = APIRouter(tags=["Tasks"], prefix="/tasks")
 
@@ -71,7 +84,7 @@ async def update_task_info(
     if (err := await update_task(task_id=task_id, values=update_data)) is not None:
         raise BadRequestUpdatingTask(exc=err)
 
-    if (description := update_data["description"]) is not None:
+    if (description := update_data.get("description")) is not None:
         asyncio.create_task(extract_and_insert_hashtags(description, task_id=task_id))
 
     # due date to string, json error otherwise
@@ -80,3 +93,23 @@ async def update_task_info(
 
     res: JSONResponse = JSONResponse(content=update_data)
     return res  # type: ignore
+
+
+@task_router.post(
+    path="/comment",
+    status_code=HTTPStatus.CREATED,
+    response_model=GetTaskComment,
+)
+async def add_new_comment_to_task(
+    params: CreateTaskComment,
+    current_user: GetUser = Depends(get_current_user),
+) -> GetTaskComment:
+    if params.user_id != current_user.id:
+        err = "Invalid user_id, not equal to current user."
+        raise BadRequestAddingCommentToTask(err)
+
+    comment, err = await add_comment_to_task(create_comment_params=params)  # type: ignore
+    if err:
+        raise BadRequestAddingCommentToTask(err)
+    assert comment is not None
+    return comment

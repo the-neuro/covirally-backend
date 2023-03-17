@@ -2,6 +2,7 @@ import json
 import uuid
 from datetime import datetime
 from http import HTTPStatus
+from unittest.mock import patch, MagicMock
 
 import pytest
 
@@ -117,7 +118,9 @@ async def created_task(async_client, access_token_and_user, access_token_and_sub
         ({"due_to_date": get_iso_datetime_until_now(days=1)}),
     ),
 )
+@patch("app.api.tasks.routers.extract_and_insert_hashtags", return_value=None)
 async def test_success_patch(
+    extract_and_insert_hashtags: MagicMock,
     patch_data,
     async_client,
     access_token_and_user: tuple[str, GetUser],
@@ -141,6 +144,10 @@ async def test_success_patch(
         if isinstance(db_value, datetime):
             db_value = db_value.isoformat()
         assert db_value == patch_value, "Value in db is not equal to value from request"
+
+    if 'description' in patch_data:
+        extract_and_insert_hashtags.assert_called_once()
+
 
 
 @pytest.mark.parametrize(

@@ -246,6 +246,31 @@ class TaskHashtags(BaseModel):
     hashtags: list[HashTag]
 
 
+class CreateTaskComment(BaseModel):
+    content: str = Field(min_length=1, max_length=2000)
+
+    task_id: str
+    user_id: str
+
+    @validator("content", pre=True)
+    def strip_content(cls, value: str) -> str:  # pylint: disable=no-self-argument
+        return value.strip()
+
+
+class GetTaskComment(BaseModel):
+    id: str  # noqa
+
+    content: str
+
+    task_id: str
+    user_id: str
+
+    edited: bool
+    edited_at: datetime | None
+
+    created_at: datetime
+
+
 class UserFeed(BaseModel):
     id: str  # noqa
     username: str
