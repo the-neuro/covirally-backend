@@ -1,25 +1,49 @@
 stages:
-#  - linters
+  - test
   - deploy
 
+services:
+  - postgres:14.7-alpine
 variables:
+  POSTGRES_DB: test
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
   GIT_DEPTH: 0
 
-#run_linters:
-#  image: python:3.10-slim-buster
-#  stage: linters
-#  variables:
-#    PRE_COMMIT_HOME: ${CI_PROJECT_DIR}/.cache/pre-commit
-#  cache:
-#    paths:
-#      - ${PRE_COMMIT_HOME}
-#  before_script:
-#    - apt-get update && apt-get install make && apt-get install -y git
-#    - python3 -m venv venv && source venv/bin/activate
-#    - pip install --upgrade pip
-#    - pip install -r requirements.dev.txt
-#  script:
-#    - ./.ci/lint.sh check
+
+run_python_tests:
+  stage: test
+  image: python:3.10.10-alpine
+  before_script:
+    - apk update && apk add make && apk add postgresql-client
+    - echo "DATABASE_URL=postgresql://postgres:postgres@postgres/test" > .env
+    - echo "APP_ENV=test" >> .env
+    - echo "SECRET_JWT_TOKEN=123dfkvmsldfv" >> .env
+    - pip install -r requirements.txt && pip install -r requirements.test.txt
+  script:
+    - make migrate
+    - make run_tests
+    - coverage report
+    - coverage xml
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+  rules:
+      # Run test stage when a merge request is opened for the first time.
+      - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_EVENT_TYPE == "detached"'
+        when: always
+      # Run test stage when a merge request is merged to target branch.
+      - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_EVENT_TYPE == "merged_result"'
+        when: always
+      # Run test stage when there is a commit to currently open merge request.
+      - if: '$CI_PIPELINE_SOURCE == "web" && $CI_OPEN_MERGE_REQUESTS'
+        when: always
+      # Run test stage when there is a push to dev or to main branches
+      - if: '$CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_BRANCH == "main"'
+        when: always
 
 deploy_dev:
   stage: deploy

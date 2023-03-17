@@ -44,6 +44,10 @@ Some steps should be made to run tests.
     ```
    **NB**: It's not necessary to change your `DATABASE_URL` env.
    There is automatic replacemet of database name while running tests.
+3. Install test dependencies:
+```shell
+pip install -r requirements.test.txt
+```
 
 After that you can run your tests:
 
