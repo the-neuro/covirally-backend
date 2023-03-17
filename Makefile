@@ -21,7 +21,7 @@ dev:
 	uvicorn main:app --host 0.0.0.0 --port 80 --reload
 
 run_tests:
-	pytest -v -s --color=yes --log-level=INFO .
+	pytest -v -s --color=yes --cov=app --cov-report term:skip-covered --timeout=30 --log-level=INFO .
 
 linters:
 	./.ci/lint.sh check

@@ -3,6 +3,7 @@ from http import HTTPStatus
 from typing import Any
 
 from fastapi import APIRouter, Depends
+from pydantic import UUID4
 from starlette.responses import JSONResponse
 
 from app.api.auth.utils import get_current_user
@@ -27,6 +28,7 @@ from app.db.models.tasks.handlers import (
     get_task_comment,
     update_task_comment,
     delete_task_comment,
+    get_joined_task,
 )
 from app.schemas import (
     CreateTask,
@@ -36,9 +38,38 @@ from app.schemas import (
     GetTaskComment,
     CreateTaskComment,
     UpdateComment,
+    GetTask,
 )
 
 task_router = APIRouter(tags=["Tasks"], prefix="/tasks")
+
+
+@task_router.get("/{task_id}", response_model=GetTask)
+async def get_task(
+    task_id: UUID4,
+    current_user: GetUser = Depends(get_current_user),
+) -> GetTask:
+    if (task := await get_joined_task(task_id=str(task_id))) is None:
+        raise TaskNotFound(str(task_id))
+
+    if current_user.id != task.creator_id:
+        # not creator, regular user
+        # don't show some fields
+        task.assignee = None
+        task.assignee_id = None
+        task.assigned_at = None
+        task.due_to_date = None
+        task.suggested_by_id = None
+        task.suggested_by = None
+
+    data = task.dict(exclude_unset=True)
+    if data.get("due_to_date"):
+        data["due_to_date"] = data["due_to_date"].isoformat()
+    if data.get("assigned_at"):
+        data["assigned_at"] = data["assigned_at"].isoformat()
+    data["created_at"] = data["created_at"].isoformat()
+
+    return JSONResponse(content=data)  # type: ignore
 
 
 @task_router.post("", response_model=GetTaskNoForeigns, status_code=HTTPStatus.CREATED)

@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timezone
 from typing import Any
 
@@ -223,10 +224,50 @@ class GetTaskNoForeigns(_BaseTask):
     created_at: datetime
 
 
-class GetTask(GetTaskNoForeigns):
-    creator: GetUser
-    suggested_by: GetUser | None
-    assignee: GetUser | None
+class UserTask(BaseModel):
+    id: str  # noqa
+    username: str | None
+    avatar_url: str | None
+
+
+class GetTask(_BaseTask):
+    id: str  # noqa
+
+    title: str
+
+    creator: UserTask
+
+    assignee: UserTask | None = None
+    assigned_at: datetime | None = None
+
+    suggested_by: UserTask | None = None
+
+    created_at: datetime
+
+    @validator("creator", pre=True)
+    def load_creator(cls, value: str) -> UserTask:  # pylint: disable=no-self-argument
+        res: UserTask = UserTask.construct(**json.loads(value))
+        return res
+
+    @validator("assignee", pre=True)
+    def load_assignee(  # pylint: disable=no-self-argument
+        cls, value: str | None
+    ) -> UserTask | None:
+        if value:
+            res: UserTask | None = UserTask.construct(**json.loads(value))
+        else:
+            res = None
+        return res
+
+    @validator("suggested_by", pre=True)
+    def load_suggested_by(  # pylint: disable=no-self-argument
+        cls, value: str | None
+    ) -> UserTask | None:
+        if value:
+            res: UserTask | None = UserTask.construct(**json.loads(value))
+        else:
+            res = None
+        return res
 
 
 class HashTag(BaseModel):

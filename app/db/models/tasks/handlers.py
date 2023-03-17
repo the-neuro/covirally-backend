@@ -16,6 +16,7 @@ from app.schemas import (
     CreateTaskComment,
     GetTaskComment,
     TasksFeed,
+    GetTask,
 )
 
 
@@ -176,6 +177,50 @@ async def update_task_comment(comment_id: str, values: dict[str, Any]) -> str | 
 async def delete_task_comment(comment_id: str) -> None:
     query = delete(TaskComment).where(TaskComment.id == comment_id)
     await database.execute(query)
+
+
+async def get_joined_task(task_id: str) -> GetTask | None:
+    query = """
+    SELECT
+        tasks.id,
+        tasks.creator_id,
+        tasks.title,
+        tasks.description,
+        tasks.status,
+        tasks.due_to_date,
+        tasks.assigned_at,
+        tasks.created_at,
+        jsonb_build_object(
+            'id', creator.id,
+            'username', creator.username,
+            'avatar_url', creator.avatar_url
+        ) as creator,
+        CASE
+            WHEN tasks.assignee_id IS NULL THEN NULL
+            ELSE
+                jsonb_build_object(
+                    'id', assignee.id,
+                    'username', assignee.username,
+                    'avatar_url', assignee.avatar_url
+                )
+        END assignee,
+        CASE
+            WHEN tasks.suggested_by_id IS NULL THEN NULL
+            ELSE
+                jsonb_build_object(
+                    'id', suggested_by.id,
+                    'username', suggested_by.username,
+                    'avatar_url', suggested_by.avatar_url
+                )
+        END suggested_by
+    FROM tasks
+    LEFT JOIN users creator on tasks.creator_id = creator.id
+    LEFT JOIN users assignee on tasks.assignee_id = assignee.id
+    LEFT JOIN users suggested_by on tasks.suggested_by_id = suggested_by.id
+    WHERE tasks.id=:task_id;
+    """
+    fetched_data = await database.fetch_one(query, values={"task_id": task_id})
+    return GetTask.parse_obj(fetched_data) if fetched_data else None
 
 
 async def get_feed_tasks(limit: int = 20, offset: int = 0) -> TasksFeed:

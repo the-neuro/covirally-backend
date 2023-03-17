@@ -115,7 +115,11 @@ async def test_valid_cases(send_verification_email: MagicMock, async_client, val
     )
 
     # check that confirmation email is sent
-    send_verification_email.assert_called_once_with(email=valid_data['email'])
+    send_verification_email.assert_called_once_with(
+        email=valid_data['email'],
+        avatar_url=valid_data.get("avatar_url"),
+        username=valid_data.get("username")
+    )
 
     json_response = response.json()
     for key in ("id", "created_at"):
