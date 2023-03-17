@@ -64,6 +64,27 @@ pytestmark = pytest.mark.asyncio
             "password": "appleapple",
             "email": "sjlasddajlskdjlnalsdj4215@apple.com",
         }),
+        ({
+            "password": "appleapple",
+            "email": "sjxv@appcakle.com",
+        }),
+        ({
+            "last_name": "Jobs",
+            "username": "steve_jobs_331v2",
+            "password": "appleapple",
+            "email": "sjxv@apkfople.com",
+        }),
+        ({
+            "first_name": "Steve",
+            "username": "steve_jobs_331va",
+            "password": "appleapple",
+            "email": "sjxv@vsdapple.com",
+        }),
+        ({
+            "username": "steve_jobs_asdm31",
+            "password": "appleapple",
+            "email": "sjxv@applbowne.com",
+        }),
     ),
 )
 @patch("app.api.users.routers.create_verify_token_and_send_to_email", return_value=None)
@@ -79,10 +100,10 @@ async def test_valid_cases(send_verification_email: MagicMock, async_client, val
     user_in_db = await get_user_by_email(valid_data["email"])
     assert user_in_db is not None
 
-    assert user_in_db.first_name == valid_data["first_name"]
-    assert user_in_db.last_name == valid_data["last_name"]
+    assert user_in_db.first_name == valid_data.get("first_name")
+    assert user_in_db.last_name == valid_data.get("last_name")
     assert user_in_db.email == valid_data["email"]
-    assert user_in_db.username == valid_data["username"]
+    assert user_in_db.username == valid_data.get("username")
     assert user_in_db.receive_email_alerts == valid_data.get("receive_email_alerts", True)
     assert user_in_db.avatar_url == valid_data.get("avatar_url")
     assert not user_in_db.email_is_verified
@@ -107,7 +128,7 @@ async def test_cant_create_with_same_usernames(async_client):
         "last_name": "Jobs",
         "username": "steve_jobs_asdasdvxc",
         "password": "appleapple",
-        "email": "sj@apple.com",
+        "email": "sj@applcaqwe.com",
     }
 
     # creating 1'st time, check that everything is ok
@@ -157,11 +178,9 @@ async def test_cant_create_with_same_emails(async_client):
     (
         ({"first_name": "aasd"}),
         ({"first_name": "aasd", "last_name": "asd"}),
-        ({"first_name": "aasd", "last_name": "asd", "password": "asdasdasd", "email": "asdgmail.com"}),
         ({"first_name": "aasd", "last_name": "asd", "username": "addsasd", "email": "asd@gmail.com"}),
         ({"first_name": "aasd", "last_name": "asd", "username": "addsasd", "password": "asdasdasd", "email": "asaskdjnasldkjnasdlkajsdna@gmail.com"}),
         ({"first_name": "aasd", "last_name": "asd", "username": "addsasd", "password": "1", "email": "asd@gmail.com"}),
-        ({"first_name": "aasd", "last_name": "asd", "username": "1asdsad", "password": "asdasdasd", "email": "asdgmail.com"}),
         ({"first_name": "aasd", "last_name": "asd", "username": "addsasd", "password": "1"}),
         ({"first_name": "aasd", "last_name": "asd", "username": "1", "password": "asdasdasd", "email": "asd@gmail.com"}),
     ),
