@@ -43,7 +43,11 @@ async def test_success_sent_refresh_password_email(
     assert response.status_code == 200, response.text
 
     # ensure that email is sent and called with appropriate email
-    create_and_send_refresh_token.assert_called_once_with(email=email)
+    create_and_send_refresh_token.assert_called_once_with(
+        email=email,
+        avatar_url=user.avatar_url,
+        username=user.username,
+    )
 
 
 async def test_success_change_password(async_client, user: GetUser):
