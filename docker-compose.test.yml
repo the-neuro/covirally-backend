@@ -13,5 +13,3 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
-    env_file:
-      - ./.env
