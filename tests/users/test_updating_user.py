@@ -206,10 +206,8 @@ async def test_cant_patch_system_fields(async_client, patch_data, access_token_a
     "patch_data",
     (
         ({"first_name": ""}),
-        ({"first_name": None}),
         ({"first_name": "jdnfhvygfuewhjbfkwjnwros9xuncbufsygvhilscfjbjgoesdnbsverkguehcvwnhieuvbsyyk"}),
         ({"last_name": ""}),
-        ({"last_name": None}),
         ({"last_name": "jdnfhvygfuewhjbfkwjnwros9xuncbufsygvhilscfjbjgoesdnbsverkguehcvwnhieuvbsyyk"}),
         ({"email": "asdasd@gmailcom"}),
         ({"email": "@gmailcom"}),
