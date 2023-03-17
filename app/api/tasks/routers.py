@@ -13,6 +13,10 @@ from app.api.errors import (
     TaskNotFound,
     NotCreatorPermissionError,
     BadRequestAddingCommentToTask,
+    ForbiddenUpdateComment,
+    CommentNotFound,
+    BadRequestUpdatingComment,
+    ForbiddenDeleteComment,
 )
 from app.db.models.hashtags.utils import extract_and_insert_hashtags
 from app.db.models.tasks.handlers import (
@@ -20,6 +24,9 @@ from app.db.models.tasks.handlers import (
     update_task,
     get_task_by_id,
     add_comment_to_task,
+    get_task_comment,
+    update_task_comment,
+    delete_task_comment,
 )
 from app.schemas import (
     CreateTask,
@@ -28,6 +35,7 @@ from app.schemas import (
     UpdateTask,
     GetTaskComment,
     CreateTaskComment,
+    UpdateComment,
 )
 
 task_router = APIRouter(tags=["Tasks"], prefix="/tasks")
@@ -113,3 +121,47 @@ async def add_new_comment_to_task(
         raise BadRequestAddingCommentToTask(err)
     assert comment is not None
     return comment
+
+
+@task_router.patch(
+    path="/comment/{comment_id}",
+    response_model=UpdateComment,
+    response_model_exclude_unset=True,
+    response_description="Dictionary with fields which were updated.",
+)
+async def update_comment(
+    comment_id: str,
+    update_params: UpdateComment,
+    current_user: GetUser = Depends(get_current_user),
+) -> UpdateComment:
+    update_data: dict[str, Any] = update_params.dict(exclude_unset=True)
+
+    if (comment := await get_task_comment(comment_id=comment_id)) is None:
+        raise CommentNotFound(comment_id=comment_id)
+
+    if comment.user_id != current_user.id:
+        raise ForbiddenUpdateComment
+
+    if (err := await update_task_comment(comment_id, values=update_data)) is not None:
+        raise BadRequestUpdatingComment(exc=err)
+
+    res: JSONResponse = JSONResponse(content=update_data)
+    return res  # type: ignore
+
+
+@task_router.delete(
+    path="/comment/{comment_id}",
+    response_description="Success response is null with 200 status code.",
+)
+async def remove_task_comment(
+    comment_id: str,
+    current_user: GetUser = Depends(get_current_user),
+) -> None:
+
+    if (comment := await get_task_comment(comment_id=comment_id)) is None:
+        raise CommentNotFound(comment_id=comment_id)
+
+    if comment.user_id != current_user.id:
+        raise ForbiddenDeleteComment
+
+    await delete_task_comment(comment_id)

@@ -123,3 +123,27 @@ class InvalidRefreshPasswordToken(HTTPException):
     def __init__(self) -> None:
         msg = "Refresh password token is invalid."
         super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
+
+
+class ForbiddenUpdateComment(HTTPException):
+    def __init__(self) -> None:
+        msg = "Can't update comment"
+        super().__init__(status_code=HTTPStatus.FORBIDDEN, detail=msg)
+
+
+class ForbiddenDeleteComment(HTTPException):
+    def __init__(self) -> None:
+        msg = "Can't delete comment"
+        super().__init__(status_code=HTTPStatus.FORBIDDEN, detail=msg)
+
+
+class CommentNotFound(HTTPException):
+    def __init__(self, comment_id: str) -> None:
+        msg = f"No comment with {comment_id=}"
+        super().__init__(status_code=HTTPStatus.NOT_FOUND, detail=msg)
+
+
+class BadRequestUpdatingComment(HTTPException):
+    def __init__(self, exc: str) -> None:
+        msg = f"Can't update comment: {exc}"
+        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
