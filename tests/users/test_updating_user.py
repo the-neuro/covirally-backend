@@ -218,6 +218,9 @@ async def test_cant_patch_system_fields(async_client, patch_data, access_token_a
         ({"avatar_url": "https:google.com"}),
         ({"avatar_url": "https//google.com"}),
         ({"username": "a"}),  # too short username
+        ({"username": "  "}),  # spaces
+        ({"first_name": "   "}),  # spaces
+        ({"last_name": "    "}),  # spaces
     ),
 )
 async def test_wrong_data_format(async_client, patch_data, access_token_and_user):

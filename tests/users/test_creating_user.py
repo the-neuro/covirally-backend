@@ -187,6 +187,8 @@ async def test_cant_create_with_same_emails(async_client):
         ({"first_name": "aasd", "last_name": "asd", "username": "addsasd", "password": "1", "email": "asd@gmail.com"}),
         ({"first_name": "aasd", "last_name": "asd", "username": "addsasd", "password": "1"}),
         ({"first_name": "aasd", "last_name": "asd", "username": "1", "password": "asdasdasd", "email": "asd@gmail.com"}),
+        ({"first_name": "", "last_name": "", "username": "", "password": "asdasdasd", "email": "asd@gmail.com"}),
+        ({"first_name": "  ", "last_name": "  ", "username": "   ", "password": "asdasdasd", "email": "asdca@gmail.com"}),
     ),
 )
 async def test_invalid_cases(async_client, data):

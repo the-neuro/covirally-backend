@@ -40,6 +40,12 @@ class CreateUser(_BaseUser):
 
     receive_email_alerts: bool = True
 
+    @validator("first_name", "last_name", "username", pre=True)
+    def strip_strings(  # pylint: disable=no-self-argument
+        cls, value: str | None
+    ) -> str | None:
+        return value.strip() if value is not None else None
+
     @root_validator(pre=True)
     def check_cant_create_with_system_fields(  # pylint: disable=no-self-argument
         cls, values: dict[str, Any]
@@ -80,6 +86,12 @@ class UpdateUser(_BaseUser):
 
     email_is_verified: bool | None = Field(default=None)
     email_verified_at: datetime | None = Field(default=None)
+
+    @validator("first_name", "last_name", "username", pre=True)
+    def strip_strings(  # pylint: disable=no-self-argument
+        cls, value: str | None
+    ) -> str | None:
+        return value.strip() if value is not None else None
 
     @validator("password")
     def hash_new_password(  # pylint: disable=no-self-argument
