@@ -323,6 +323,21 @@ class GetTaskComment(BaseModel):
     created_at: datetime
 
 
+class UserComment(BaseModel):
+    id: str  # noqa
+    username: str
+    avatar_url: str | None
+
+
+class GetPaginatedTaskComment(BaseModel):
+    id: str  # noqa
+    content: str
+    edited: bool
+    edited_at: datetime | None
+    created_at: datetime
+    user: UserComment
+
+
 class UpdateComment(BaseModel):
     content: str | None = Field(default=None, min_length=1, max_length=2000)
 

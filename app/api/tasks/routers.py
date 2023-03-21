@@ -2,7 +2,8 @@ import asyncio
 from http import HTTPStatus
 from typing import Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
+from fastapi_pagination import Page
 from pydantic import UUID4
 from starlette.responses import JSONResponse
 
@@ -29,6 +30,7 @@ from app.db.models.tasks.handlers import (
     update_task_comment,
     delete_task_comment,
     get_joined_task,
+    get_comments_for_task,
 )
 from app.schemas import (
     CreateTask,
@@ -39,6 +41,7 @@ from app.schemas import (
     CreateTaskComment,
     UpdateComment,
     GetTask,
+    GetPaginatedTaskComment,
 )
 
 task_router = APIRouter(tags=["Tasks"], prefix="/tasks")
@@ -132,6 +135,20 @@ async def update_task_info(
 
     res: JSONResponse = JSONResponse(content=update_data)
     return res  # type: ignore
+
+
+@task_router.get(
+    path="/{task_id}/comments",
+    response_model=Page[GetPaginatedTaskComment],
+    response_description="Return comments with pagination",
+)
+async def get_paginated_comments_for_task(
+    task_id: str,
+    _: GetUser = Depends(get_current_user),
+    page: int = Query(default=1, ge=1),
+    size: int = Query(default=10, ge=10, le=20),
+) -> Page[GetPaginatedTaskComment]:
+    return await get_comments_for_task(task_id, page, size)
 
 
 @task_router.post(
