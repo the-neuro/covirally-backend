@@ -89,6 +89,12 @@ class BadRequestUpdatingTask(HTTPException):
         super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
 
 
+class BadRequestDeletingTask(HTTPException):
+    def __init__(self, exc: str) -> None:
+        msg = f"Can't delete task: {exc}"
+        super().__init__(status_code=HTTPStatus.BAD_REQUEST, detail=msg)
+
+
 class TaskNotFound(HTTPException):
     def __init__(self, task_id: str) -> None:
         msg = f"No task with {task_id=}"

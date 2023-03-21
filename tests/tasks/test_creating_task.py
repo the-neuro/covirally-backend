@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 from app.api.auth.password_utils import get_password_hash
-from app.db.models.tasks.handlers import get_task_by_id
+from app.db.models.tasks.task_handlers import get_task_by_id
 from app.db.models.users.handlers import create_user
 from app.schemas import GetUser, CreateUser
 from app.types import TaskStatus
@@ -80,7 +80,7 @@ async def access_token_and_user(async_client) -> tuple[str, GetUser]:
         }),
     ),
 )
-@patch("app.api.tasks.routers.extract_and_insert_hashtags", return_value=None)
+@patch("app.api.tasks.task_routers.extract_and_insert_hashtags", return_value=None)
 async def test_valid_cases_create_task_by_user(
     extract_and_insert_hashtags: MagicMock,
     async_client,
@@ -145,7 +145,7 @@ async def test_valid_cases_create_task_by_user(
         }),
     ),
 )
-@patch("app.api.tasks.routers.extract_and_insert_hashtags", return_value=None)
+@patch("app.api.tasks.task_routers.extract_and_insert_hashtags", return_value=None)
 async def test_valid_cases_creating_task_by_creator(
     extract_and_insert_hashtags: MagicMock,
     async_client, valid_data,
@@ -268,7 +268,7 @@ async def test_cant_create_task_with_invalid_description(
         }),
     ),
 )
-@patch("app.api.tasks.routers.extract_and_insert_hashtags", return_value=None)
+@patch("app.api.tasks.task_routers.extract_and_insert_hashtags", return_value=None)
 async def test_assigned_at_is_set(
        extract_and_insert_hashtags: MagicMock, async_client, valid_data, access_token_and_creator, access_token_and_user):
     access_token, creator = access_token_and_creator

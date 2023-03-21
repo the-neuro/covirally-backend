@@ -11,7 +11,8 @@ from starlette.responses import JSONResponse
 
 from app.api.auth.routers import auth_router
 from app.api.feed.routers import feed_router
-from app.api.tasks.routers import task_router
+from app.api.tasks.comment_routers import comment_router
+from app.api.tasks.task_routers import task_router
 from app.api.users.routers import users_router
 from app.config import settings, AppEnvTypes
 from app.events import create_start_app_handler, create_stop_app_handler
@@ -51,6 +52,7 @@ def get_application() -> FastAPI:
     application.include_router(users_router)
     application.include_router(auth_router)
     application.include_router(task_router)
+    application.include_router(comment_router)
     application.include_router(feed_router)
 
     # origins = [

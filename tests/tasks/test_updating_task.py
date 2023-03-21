@@ -1,4 +1,3 @@
-import json
 import uuid
 from datetime import datetime
 from http import HTTPStatus
@@ -7,7 +6,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 from app.api.auth.password_utils import get_password_hash
-from app.db.models.tasks.handlers import get_task_by_id
+from app.db.models.tasks.task_handlers import get_task_by_id
 from app.db.models.users.handlers import create_user
 from app.schemas import GetUser, GetTaskNoForeigns, CreateUser
 from app.types import TaskStatus
@@ -120,7 +119,7 @@ async def created_task(async_client, access_token_and_user, access_token_and_sub
         ({"due_to_date": None}),
     ),
 )
-@patch("app.api.tasks.routers.extract_and_insert_hashtags", return_value=None)
+@patch("app.api.tasks.task_routers.extract_and_insert_hashtags", return_value=None)
 async def test_success_patch(
     extract_and_insert_hashtags: MagicMock,
     patch_data,

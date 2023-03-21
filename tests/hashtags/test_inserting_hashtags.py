@@ -4,7 +4,7 @@ import pytest
 
 from app.db.models.hashtags.handlers import get_hashtags_for_task
 from app.db.models.hashtags.utils import extract_and_insert_hashtags
-from app.db.models.tasks.handlers import create_task
+from app.db.models.tasks.task_handlers import create_task
 from app.db.models.users.handlers import create_user
 from app.schemas import CreateUser, GetUser, GetTaskNoForeigns, CreateTask
 

@@ -5,7 +5,8 @@ from uuid import uuid4
 import pytest
 
 from app.api.auth.password_utils import get_password_hash
-from app.db.models.tasks.handlers import create_task, add_comment_to_task
+from app.db.models.tasks.task_handlers import create_task
+from app.db.models.tasks.comment_handlers import add_comment_to_task
 from app.db.models.users.handlers import create_user
 from app.schemas import GetUser, CreateUser, GetTaskNoForeigns, CreateTask, \
     CreateTaskComment
