@@ -254,6 +254,8 @@ class GetTask(_BaseTask):
 
     title: str
 
+    n_comments: int
+
     creator: UserTask
 
     assignee: UserTask | None = None

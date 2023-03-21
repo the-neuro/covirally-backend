@@ -5,9 +5,10 @@ from uuid import uuid4
 import pytest
 
 from app.api.auth.password_utils import get_password_hash
-from app.db.models.tasks.handlers import create_task
+from app.db.models.tasks.handlers import create_task, add_comment_to_task
 from app.db.models.users.handlers import create_user
-from app.schemas import GetUser, CreateUser, GetTaskNoForeigns, CreateTask
+from app.schemas import GetUser, CreateUser, GetTaskNoForeigns, CreateTask, \
+    CreateTaskComment
 from tests.utils import get_iso_datetime_until_now
 
 pytestmark = pytest.mark.asyncio
@@ -72,6 +73,13 @@ async def created_task(access_token_and_creator, access_token_and_user) -> GetTa
         suggested_by_id=user.id,
     )
     task, _ = await create_task(data)
+    await add_comment_to_task(
+        create_comment_params=CreateTaskComment(
+            content="some",
+            task_id=task.id,
+            user_id=user.id
+        )
+    )
     return task
 
 
@@ -98,6 +106,8 @@ async def test_success_get_by_creator(
         "username": creator.username,
         "avatar_url": creator.avatar_url,
     }
+    assert json_response['n_comments'] == 1
+
     assert json_response['created_at'] is not None
     if created_task.assignee_id:
         assert json_response['assignee'] == {
@@ -139,6 +149,8 @@ async def test_success_get_by_user(
         "username": creator.username,
         "avatar_url": creator.avatar_url,
     }
+    assert json_response['n_comments'] == 1
+
     assert json_response['created_at'] is not None
     if created_task.assignee_id:
         assert json_response['assignee'] is None, "Regular user cant see assignee info"
