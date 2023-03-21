@@ -18,9 +18,9 @@ from app.schemas import (
     GetTaskNoForeigns,
     CreateTaskComment,
     GetTaskComment,
-    TasksFeed,
     GetTask,
     GetPaginatedTaskComment,
+    TaskFeed,
 )
 
 
@@ -141,6 +141,14 @@ async def get_total_count_of_comment_for_taks(task_id: str) -> int:
 
     query = "SELECT COUNT(*) FROM tasks_comments WHERE task_id=:task_id"
     res: int = await database.fetch_val(query, {"task_id": task_id})
+    return res
+
+
+async def get_total_counf_of_tasks() -> int:
+    # todo: cache this value
+
+    query = "SELECT COUNT(*) FROM tasks"
+    res: int = await database.fetch_val(query)
     return res
 
 
@@ -279,30 +287,52 @@ async def get_joined_task(task_id: str) -> GetTask | None:
     return GetTask.parse_obj(fetched_data) if fetched_data else None
 
 
-async def get_feed_tasks(limit: int = 20, offset: int = 0) -> TasksFeed:
+async def get_feed_tasks(page: int, size: int) -> Page[TaskFeed]:
     query = """
-    SELECT
-        json_agg(
+    WITH tasks_with_comment_count AS (
+        SELECT
+            tasks.id,
+            count(tc.*) as comments_count
+        FROM tasks
+        LEFT JOIN tasks_comments tc on tasks.id = tc.task_id
+        GROUP BY 1
+        LIMIT :limit
+        OFFSET :offset
+    ),
+    table_with_json_rows AS (
+        SELECT
             json_build_object(
                 'id', tasks.id,
                 'title', tasks.title,
                 'description', tasks.description,
                 'created_at', tasks.created_at,
                 'status', tasks.status,
+                'n_comments', tcc.comments_count,
                 'creator', json_build_object(
-                    'id', creator.id,
-                    'username', creator.username,
-                    'avatar_url', creator.avatar_url
+                     'id', creator.id,
+                     'username', creator.username,
+                     'avatar_url', creator.avatar_url
                 )
-            ) ORDER BY tasks.created_at DESC
-        ) AS tasks
-    FROM tasks
-    LEFT JOIN users creator ON tasks.creator_id = creator.id
-    LIMIT :limit
-    OFFSET :offset;
-    """
-    fetched_data = await database.fetch_one(
-        query, values={"limit": limit, "offset": offset}
+            ) AS _tasks
+        FROM tasks_with_comment_count tcc
+        LEFT JOIN tasks ON tcc.id = tasks.id
+        LEFT JOIN users creator ON tasks.creator_id = creator.id
+        ORDER BY tasks.created_at DESC
     )
-    res: TasksFeed = TasksFeed.parse_obj({"tasks": json.loads(fetched_data["tasks"])})
-    return res
+    SELECT json_agg(_tasks) tasks from table_with_json_rows;
+    """
+    values = {"limit": size, "offset": (page - 1) * size}
+    fetched_tasks, total = await asyncio.gather(
+        *(
+            database.fetch_one(query, values),
+            get_total_counf_of_tasks(),
+        )
+    )
+    if not fetched_tasks or not fetched_tasks["tasks"]:
+        tasks = []
+    else:
+        _dict_tasks = json.loads(fetched_tasks["tasks"])
+        tasks = [TaskFeed.parse_obj(task) for task in _dict_tasks]
+
+    total_pages = ceil(total / size)
+    return Page(total=total, page=page, size=size, items=tasks, pages=total_pages)
