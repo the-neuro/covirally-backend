@@ -283,8 +283,18 @@ async def get_joined_task(task_id: str) -> GetTask | None:
     LEFT JOIN users suggested_by on tasks.suggested_by_id = suggested_by.id
     WHERE tasks.id=:task_id;
     """
-    fetched_data = await database.fetch_one(query, values={"task_id": task_id})
-    return GetTask.parse_obj(fetched_data) if fetched_data else None
+    fetched_data: Record | None
+    fetched_data, n_comments = await asyncio.gather(
+        *(
+            database.fetch_one(query, values={"task_id": task_id}),
+            get_total_count_of_comment_for_taks(task_id),
+        )
+    )
+    data: GetTask | None = None
+    if fetched_data:
+        _data = dict(fetched_data._mapping.items(), n_comments=n_comments)
+        data = GetTask.parse_obj(_data)
+    return data
 
 
 async def get_feed_tasks(page: int, size: int) -> Page[TaskFeed]:
