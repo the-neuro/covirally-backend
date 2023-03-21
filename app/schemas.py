@@ -386,10 +386,71 @@ class TasksFeed(BaseModel):
     tasks: list[TaskFeed]
 
 
-class Grade(BaseModel):
-    id: str  # noqa
+class _BaseGrade(BaseModel):
     user_id: str
     creator_id: str
     grade_variant: Grades | None = Field(default=Grades.SUBSCRIBED)
-    task: datetime | None
+    grade_variant_int: int | None
+    grade_rights: list[str] | None
+    task: str | None
     degrades_at: datetime | None
+
+
+class CreateGrade(_BaseGrade):
+    grade_variant: Grades
+
+    @root_validator(pre=True)
+    def calculate_grade_int(  # pylint: disable=no-self-argument  # noqa
+        cls, values: dict[str, Any]
+    ) -> dict[str, Any]:
+        """
+        Automating calculation of grade_variant_int and grade_rights while creating grade
+        """
+        grades = {
+            "subscribed": 1,
+            "payed_post": 2,
+            "payed_subscribed": 3,
+            "team_creator": 4,
+            "is_creator": 5,
+        }
+
+        grades_access = {
+            "referal_system": 0,
+            "buying_posts": 0,
+            "donation": 0,
+            "payed_subscription": 0,
+            "voting_for_ideas": 0,
+            "voting_for_comments": 0,
+            "earning_tokens": 0,
+            "visual_commenting": 1,
+            "thanks_from_creator": 1,
+            "messages_from_creator": 1,
+            "messages_to_creator": 1,
+            "badges_from_creator": 1,
+            "adding_ideas_to_backlog": 1,
+            "early_access_to_beta": 2,
+            "exclusive_emoji": 3,
+            "uploading_files_into_task": 4,
+            "deleting_files_from_task": 4,
+            "commentary_moderation": 4,
+            "user_status_change": 5,
+            "editing_post": 5,
+        }
+
+        values["grade_variant_int"] = grades[values["grade_variant"]]
+        values["grade_rights"] = []
+        for grade, code in grades_access.items():
+            if code <= values["grade_variant_int"]:
+                values["grade_rights"].append(grade)
+        return values
+
+
+class Grade(_BaseGrade):
+    id: str  # noqa
+    grade_variant: Grades
+    grade_variant_int: int
+    grade_rights: list[str]
+
+
+class GradeFeed(BaseModel):
+    grades: list[Grade]

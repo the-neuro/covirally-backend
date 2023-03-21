@@ -23,12 +23,17 @@ from app.db.models.tasks.task_handlers import (
     get_joined_task,
     delete_task,
 )
+from app.db.models.tasks.task_handlers import create_task, update_task, get_task_by_id
+from app.db.models.grades.handlers import get_user_grades, create_grade
 from app.schemas import (
     CreateTask,
     GetTaskNoForeigns,
     GetUser,
     UpdateTask,
     GetTask,
+    Grade,
+    GradeFeed,
+    CreateGrade,
 )
 
 task_router = APIRouter(tags=["Tasks"], prefix="/tasks")
@@ -67,7 +72,6 @@ async def create_new_task(
     params: CreateTask,
     current_user: GetUser = Depends(get_current_user),
 ) -> GetTaskNoForeigns:
-
     if params.suggested_by_id:  # some user is suggesting a task
         # todo: check that user is subscriber of the creator
         if params.suggested_by_id != current_user.id:
@@ -139,3 +143,32 @@ async def delete_task_(
         raise BadRequestDeletingTask(exc=err)
 
     return None
+
+
+@task_router.get(
+    path="/subscriptions",
+    response_model=GradeFeed,
+    response_description="A list of user subscriptions",
+)
+def get_subscriptions(
+    current_user: GetUser = Depends(get_current_user),
+) -> GradeFeed:
+    res: JSONResponse = JSONResponse(
+        content=get_user_grades(user_id=current_user.id, creator_id=None, task_id=None)
+    )
+    return res  # type: ignore
+
+
+@task_router.post(
+    path="/subscribe",
+    response_model=Grade,
+    response_description="Add grade to post or user",
+)
+async def add_subscription(
+    params: CreateGrade,
+    current_user: GetUser = Depends(get_current_user),
+) -> Grade:
+    # set current user id to subscription
+    params.user_id = current_user.id
+    res: JSONResponse = JSONResponse(content=create_grade(params))
+    return res  # type: ignore

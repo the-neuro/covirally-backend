@@ -107,6 +107,12 @@ class NotCreatorPermissionError(HTTPException):
         super().__init__(status_code=HTTPStatus.FORBIDDEN, detail=msg)
 
 
+class NotSubscribedPermissionError(HTTPException):
+    def __init__(self) -> None:
+        msg = "Only subscribed user is allowed to do it."
+        super().__init__(status_code=HTTPStatus.FORBIDDEN, detail=msg)
+
+
 class InvalidVerifyEmailToken(HTTPException):
     def __init__(self) -> None:
         msg = "Token is invalid."
