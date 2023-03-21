@@ -373,11 +373,8 @@ class UserFeed(BaseModel):
 class TaskFeed(BaseModel):
     id: str  # noqa
     title: str
+    n_comments: int
     description: str | None = None
     created_at: str
     status: TaskStatus
     creator: UserFeed
-
-
-class TasksFeed(BaseModel):
-    tasks: list[TaskFeed]
