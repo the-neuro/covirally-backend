@@ -2,8 +2,7 @@ import asyncio
 from http import HTTPStatus
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
-from fastapi_pagination import Page
+from fastapi import APIRouter, Depends
 from pydantic import UUID4
 from starlette.responses import JSONResponse
 
@@ -14,34 +13,22 @@ from app.api.errors import (
     BadRequestUpdatingTask,
     TaskNotFound,
     NotCreatorPermissionError,
-    BadRequestAddingCommentToTask,
-    ForbiddenUpdateComment,
-    CommentNotFound,
-    BadRequestUpdatingComment,
-    ForbiddenDeleteComment,
+    BadRequestDeletingTask,
 )
 from app.db.models.hashtags.utils import extract_and_insert_hashtags
-from app.db.models.tasks.handlers import (
+from app.db.models.tasks.task_handlers import (
     create_task,
     update_task,
     get_task_by_id,
-    add_comment_to_task,
-    get_task_comment,
-    update_task_comment,
-    delete_task_comment,
     get_joined_task,
-    get_comments_for_task,
+    delete_task,
 )
 from app.schemas import (
     CreateTask,
     GetTaskNoForeigns,
     GetUser,
     UpdateTask,
-    GetTaskComment,
-    CreateTaskComment,
-    UpdateComment,
     GetTask,
-    GetPaginatedTaskComment,
 )
 
 task_router = APIRouter(tags=["Tasks"], prefix="/tasks")
@@ -137,79 +124,18 @@ async def update_task_info(
     return res  # type: ignore
 
 
-@task_router.get(
-    path="/{task_id}/comments",
-    response_model=Page[GetPaginatedTaskComment],
-    response_description="Return comments with pagination",
-)
-async def get_paginated_comments_for_task(
-    task_id: str,
-    _: GetUser = Depends(get_current_user),
-    page: int = Query(default=1, ge=1),
-    size: int = Query(default=10, ge=10, le=20),
-) -> Page[GetPaginatedTaskComment]:
-    return await get_comments_for_task(task_id, page, size)
-
-
-@task_router.post(
-    path="/comment",
-    status_code=HTTPStatus.CREATED,
-    response_model=GetTaskComment,
-)
-async def add_new_comment_to_task(
-    params: CreateTaskComment,
-    current_user: GetUser = Depends(get_current_user),
-) -> GetTaskComment:
-    if params.user_id != current_user.id:
-        err = "Invalid user_id, not equal to current user."
-        raise BadRequestAddingCommentToTask(err)
-
-    comment, err = await add_comment_to_task(create_comment_params=params)  # type: ignore
-    if err:
-        raise BadRequestAddingCommentToTask(err)
-    assert comment is not None
-    return comment
-
-
-@task_router.patch(
-    path="/comment/{comment_id}",
-    response_model=UpdateComment,
-    response_model_exclude_unset=True,
-    response_description="Dictionary with fields which were updated.",
-)
-async def update_comment(
-    comment_id: str,
-    update_params: UpdateComment,
-    current_user: GetUser = Depends(get_current_user),
-) -> UpdateComment:
-    update_data: dict[str, Any] = update_params.dict(exclude_unset=True)
-
-    if (comment := await get_task_comment(comment_id=comment_id)) is None:
-        raise CommentNotFound(comment_id=comment_id)
-
-    if comment.user_id != current_user.id:
-        raise ForbiddenUpdateComment
-
-    if (err := await update_task_comment(comment_id, values=update_data)) is not None:
-        raise BadRequestUpdatingComment(exc=err)
-
-    res: JSONResponse = JSONResponse(content=update_data)
-    return res  # type: ignore
-
-
-@task_router.delete(
-    path="/comment/{comment_id}",
-    response_description="Success response is null with 200 status code.",
-)
-async def remove_task_comment(
-    comment_id: str,
-    current_user: GetUser = Depends(get_current_user),
+@task_router.delete("/{task_id}")
+async def delete_task_(
+    task_id: str, current_user: GetUser = Depends(get_current_user)
 ) -> None:
+    if not (task := await get_task_by_id(task_id=task_id)):
+        raise TaskNotFound(task_id=task_id)
 
-    if (comment := await get_task_comment(comment_id=comment_id)) is None:
-        raise CommentNotFound(comment_id=comment_id)
+    # if someone except creator is trying to delete
+    if task.creator_id != current_user.id:
+        raise NotCreatorPermissionError
 
-    if comment.user_id != current_user.id:
-        raise ForbiddenDeleteComment
+    if (err := await delete_task(task_id=task_id)) is not None:
+        raise BadRequestDeletingTask(exc=err)
 
-    await delete_task_comment(comment_id)
+    return None

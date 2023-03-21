@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from fastapi_pagination import Page
 
 from app.api.auth.utils import get_curr_user_or_none
-from app.db.models.tasks.handlers import get_feed_tasks
+from app.db.models.tasks.task_handlers import get_feed_tasks
 from app.schemas import GetUser, TaskFeed
 
 feed_router = APIRouter(tags=["Task's feed"], prefix="/feed")
