@@ -23,7 +23,6 @@ from app.db.models.tasks.task_handlers import (
     get_joined_task,
     delete_task,
 )
-from app.db.models.tasks.task_handlers import create_task, update_task, get_task_by_id
 from app.db.models.grades.handlers import get_user_grades, create_grade
 from app.schemas import (
     CreateTask,

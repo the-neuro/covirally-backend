@@ -1,8 +1,8 @@
 """Added grades table
 
-Revision ID: be2ec4616665
-Revises: c58542775dfb
-Create Date: 2023-03-14 23:30:59.157320
+Revision ID: 12231538492a
+Revises: 693fca64fede
+Create Date: 2023-03-22 01:49:40.325984
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'be2ec4616665'
-down_revision = 'c58542775dfb'
+revision = '12231538492a'
+down_revision = '693fca64fede'
 branch_labels = None
 depends_on = None
 
