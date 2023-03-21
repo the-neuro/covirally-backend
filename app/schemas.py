@@ -2,7 +2,6 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
-import pytz  # type: ignore
 from pydantic import BaseModel, validator, Field, root_validator
 
 from app.api.auth.password_utils import get_password_hash
@@ -162,16 +161,20 @@ class CreateTask(_BaseTask):
     creator_id: str = Field()
     status: TaskStatus = Field(default=TaskStatus.IDEA)
 
-    @validator("due_to_date")
-    def check_date_in_future(  # pylint: disable=no-self-argument  # noqa
-        cls, due_to_date: datetime | None
-    ) -> datetime | None:
-        if not due_to_date:
-            return None
+    @validator("title", "description", pre=True)
+    def strip_strings(  # pylint: disable=no-self-argument
+        cls, value: Any | None
+    ) -> Any | None:
+        return value.strip() if isinstance(value, str) else value
 
-        if not due_to_date.replace(tzinfo=pytz.UTC) > datetime.now(timezone.utc):
-            raise ValueError("due_to_date must be date in future")
-        return due_to_date
+    @validator("due_to_date", pre=True)
+    def check_iso_format(  # pylint: disable=no-self-argument
+        cls, value: str | None
+    ) -> str | None:
+        if value:
+            datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z")
+            return value
+        return value
 
     @root_validator()
     def set_assigned_at_if_neccessary(  # pylint: disable=no-self-argument
@@ -183,16 +186,20 @@ class CreateTask(_BaseTask):
 
 
 class UpdateTask(_BaseTask):
-    @validator("due_to_date")
-    def check_date_in_future(  # pylint: disable=no-self-argument  # noqa
-        cls, due_to_date: datetime | None
-    ) -> datetime | None:
-        if not due_to_date:
-            return None
+    @validator("title", "description", pre=True)
+    def strip_strings(  # pylint: disable=no-self-argument
+        cls, value: Any | None
+    ) -> Any | None:
+        return value.strip() if isinstance(value, str) else value
 
-        if not due_to_date.replace(tzinfo=pytz.UTC) > datetime.now(timezone.utc):
-            raise ValueError("due_to_date must be date in future")
-        return due_to_date
+    @validator("due_to_date", pre=True)
+    def check_iso_format(  # pylint: disable=no-self-argument
+        cls, value: str | None
+    ) -> str | None:
+        if value:
+            datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f%z")
+            return value
+        return value
 
     @root_validator()
     def set_assigned_at_if_neccessary(  # pylint: disable=no-self-argument

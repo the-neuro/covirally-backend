@@ -116,6 +116,8 @@ async def created_task(async_client, access_token_and_user, access_token_and_sub
         ({"status": TaskStatus.DONE}),
         ({"status": TaskStatus.IDEA, "title": "New title"}),
         ({"due_to_date": get_iso_datetime_until_now(days=1)}),
+        ({"due_to_date": get_iso_datetime_until_now(days=-2)}),
+        ({"due_to_date": None}),
     ),
 )
 @patch("app.api.tasks.routers.extract_and_insert_hashtags", return_value=None)
@@ -149,7 +151,6 @@ async def test_success_patch(
         extract_and_insert_hashtags.assert_called_once()
 
 
-
 @pytest.mark.parametrize(
     "invalid_title",
     (
@@ -157,6 +158,8 @@ async def test_success_patch(
         "",  # too short
         5,  # can't be number
         get_random_string(length=129),  # too long,
+        " ",
+        "    ",
     ),
 )
 async def test_update_invalid_title_params(
@@ -183,6 +186,37 @@ async def test_update_invalid_title_params(
 
 
 @pytest.mark.parametrize(
+    "invalid_description",
+    (
+        " ",
+        "    ",
+    ),
+)
+async def test_update_invalid_description(
+    invalid_description,
+    async_client,
+    access_token_and_user: tuple[str, GetUser],
+    created_task: GetTaskNoForeigns
+):
+    access_token, _ = access_token_and_user
+    auth_header = f"Bearer {access_token}"
+
+    patch_data = {
+        "description": invalid_description
+    }
+
+    response = await async_client.patch(f"/tasks/{created_task.id}", json=patch_data,
+                                        headers={"Authorization": auth_header})
+
+    assert response.status_code == 400, response.text
+
+    task_in_db = await get_task_by_id(task_id=created_task.id)
+    err = "Description must not be changed after updating with invalid one"
+    assert task_in_db.description != invalid_description, err
+    assert task_in_db.description == created_task.description
+
+
+@pytest.mark.parametrize(
     "invalid_due_date",
     (
         "A",  # wrong format
@@ -190,9 +224,6 @@ async def test_update_invalid_title_params(
         "2020-01-01",  # wrong format
         "01-01-2020",  # wrong format,
         2020,  # wrong format
-        get_iso_datetime_until_now(days=-5),  # date in past
-        get_iso_datetime_until_now(minutes=-1),  # date in past
-        get_iso_datetime_until_now(seconds=-2),  # date in past
     ),
 )
 async def test_update_invalid_due_to_date(
@@ -353,6 +384,7 @@ async def test_cant_patch_system_fields(
         ({"title": "New asd title"}),
         ({"description": "Something"}),
         ({"due_to_date": get_iso_datetime_until_now(days=1)}),
+        ({"due_to_date": get_iso_datetime_until_now(days=-2)}),
     ),
 )
 async def test_assignee_cant_change_simple_fields(
@@ -387,6 +419,7 @@ async def test_assignee_cant_change_simple_fields(
         ({"title": "New asd title"}),
         ({"description": "Something"}),
         ({"due_to_date": get_iso_datetime_until_now(days=1)}),
+        ({"due_to_date": get_iso_datetime_until_now(days=-2)}),
         ({"status": TaskStatus.DONE}),
     ),
 )

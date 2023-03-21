@@ -73,6 +73,11 @@ async def access_token_and_user(async_client) -> tuple[str, GetUser]:
             "due_to_date": get_iso_datetime_until_now(days=10),
             "status": TaskStatus.IN_PROGRESS,
         }),
+        ({
+            "title": "Hello2",
+            "due_to_date": None,
+            "status": TaskStatus.IN_PROGRESS,
+        }),
     ),
 )
 @patch("app.api.tasks.routers.extract_and_insert_hashtags", return_value=None)
@@ -128,6 +133,16 @@ async def test_valid_cases_create_task_by_user(
             "due_to_date": get_iso_datetime_until_now(days=10),
             "status": TaskStatus.IN_PROGRESS,
         }),
+        ({
+            "title": "Hello2",
+            "due_to_date": get_iso_datetime_until_now(days=-2),
+            "status": TaskStatus.IN_PROGRESS,
+        }),
+        ({
+            "title": "Hello2",
+            "due_to_date": None,
+            "status": TaskStatus.IN_PROGRESS,
+        }),
     ),
 )
 @patch("app.api.tasks.routers.extract_and_insert_hashtags", return_value=None)
@@ -169,15 +184,11 @@ async def test_valid_cases_creating_task_by_creator(
 @pytest.mark.parametrize(
     "invalid_due_date",
     (
-            get_iso_datetime_until_now(days=0, seconds=-1),
-            get_iso_datetime_until_now(days=-1),
-            get_iso_datetime_until_now(seconds=-1),
-            get_iso_datetime_until_now(days=-10),
-            get_iso_datetime_until_now(days=-10),
         "asdasd",
         "2020-01-01",
         "01-01-2020",
-        ""
+        "",
+        2020,
     ),
 )
 async def test_cant_create_task_with_invalid_due_date(
@@ -203,6 +214,8 @@ async def test_cant_create_task_with_invalid_due_date(
         "",  # too short
         "2",  # too short
         get_random_string(130),  # too long
+        " ",
+        "   ",
     ),
 )
 async def test_cant_create_task_with_invalid_title(
@@ -214,6 +227,30 @@ async def test_cant_create_task_with_invalid_title(
     auth_header = f"Bearer {access_token}"
     data = {
         "title": invalid_title,
+        "creator_id": creator.id,
+    }
+    response = await async_client.post("/tasks", json=data, headers={"Authorization": auth_header})
+
+    assert response.status_code == 400, response.text
+
+
+@pytest.mark.parametrize(
+    "invalid_description",
+    (
+        " ",
+        "   ",
+    ),
+)
+async def test_cant_create_task_with_invalid_description(
+    async_client,
+    invalid_description,
+    access_token_and_creator,
+):
+    access_token, creator = access_token_and_creator
+    auth_header = f"Bearer {access_token}"
+    data = {
+        "title": "Some",
+        "description": invalid_description,
         "creator_id": creator.id,
     }
     response = await async_client.post("/tasks", json=data, headers={"Authorization": auth_header})

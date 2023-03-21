@@ -26,7 +26,7 @@ from app.schemas import GetUser
 from app.types import EMAIL_REGEX
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 180
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
 optional_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token", auto_error=False)

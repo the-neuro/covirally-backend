@@ -127,7 +127,7 @@ async def update_task_info(
         asyncio.create_task(extract_and_insert_hashtags(description, task_id=task_id))
 
     # due date to string, json error otherwise
-    if "due_to_date" in update_data:
+    if "due_to_date" in update_data and update_data["due_to_date"] is not None:
         update_data["due_to_date"] = update_data["due_to_date"].isoformat()
 
     res: JSONResponse = JSONResponse(content=update_data)

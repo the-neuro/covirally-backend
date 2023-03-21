@@ -8,6 +8,7 @@ from app.api.auth.password_utils import get_password_hash
 from app.db.models.tasks.handlers import create_task
 from app.db.models.users.handlers import create_user
 from app.schemas import GetUser, CreateUser, GetTaskNoForeigns, CreateTask
+from tests.utils import get_iso_datetime_until_now
 
 pytestmark = pytest.mark.asyncio
 
@@ -67,7 +68,7 @@ async def created_task(access_token_and_creator, access_token_and_user) -> GetTa
         description="Some description",
         creator_id=creator.id,
         assignee_id=user.id,
-        due_to_date=datetime.now(timezone.utc) + timedelta(days=2),
+        due_to_date=get_iso_datetime_until_now(days=2),
         suggested_by_id=user.id,
     )
     task, _ = await create_task(data)
