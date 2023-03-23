@@ -387,16 +387,16 @@ class TasksFeed(BaseModel):
 
 
 class _BaseGrade(BaseModel):
-    user_id: str
     creator_id: str
     grade_variant: Grades | None = Field(default=Grades.SUBSCRIBED)
     grade_variant_int: int | None
     grade_rights: list[str] | None
-    task: str | None
+    task_id: str | None
     degrades_at: datetime | None
 
 
 class CreateGrade(_BaseGrade):
+    user_id: str | None
     grade_variant: Grades
 
     @root_validator(pre=True)

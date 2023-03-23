@@ -1,4 +1,4 @@
-from sqlalchemy import String, text, Column, ForeignKey, DateTime, Enum
+from sqlalchemy import String, text, Column, ForeignKey, DateTime, Enum, JSON, Integer
 
 from app.db.base import Base
 from app.types import Grades
@@ -18,5 +18,7 @@ class Grade(Base):
         default=Grades.SUBSCRIBED.value,
         nullable=False,
     )
-    task = Column(String, ForeignKey("tasks.id"), index=True, nullable=True)
+    grade_variant_int = Column(Integer, default=-1, nullable=False)
+    grade_rights = Column(JSON, nullable=True)
+    task_id = Column(String, ForeignKey("tasks.id"), index=True, nullable=True)
     degrades_at = Column(DateTime(timezone=True), nullable=True)
