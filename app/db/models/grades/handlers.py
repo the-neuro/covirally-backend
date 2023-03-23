@@ -67,11 +67,7 @@ async def get_user_grades(user_id: str) -> GradeFeed:
     4: Team creator
     5: Is creator
     """
-    query = """
-    SELECT ALL
-        AS grades
-    FROM grades WHERE user_id=:user_id;
-    """
-    fetched_data = await database.fetch_one(query, values={"user_id": user_id})
+    query = select(GradeSchema).where(GradeSchema.user_id == user_id)
+    fetched_data = await database.fetch_one(query)
     res: GradeFeed = GradeFeed.parse_obj({"grades": json.loads(fetched_data["grades"])})
     return res
